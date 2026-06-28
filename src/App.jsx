@@ -56,8 +56,8 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    setInputValue('torvalds');
-    void handleSearch('torvalds');
+    setInputValue('sanket1035');
+    void handleSearch('sanket1035');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -196,7 +196,7 @@ function App() {
 
           {showIntro ? (
             <div className="relative z-10 mx-auto mt-8 max-w-2xl rounded-lg border border-dashed border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-5 py-6 text-center text-sm text-[var(--gs-text-secondary)]">
-              Start with a username like <span className="font-medium text-[var(--gs-text)]">torvalds</span> to load a full profile summary.
+              Start with a username like <span className="font-medium text-[var(--gs-text)]">sanket1035</span> to load a full profile summary.
             </div>
           ) : null}
         </section>

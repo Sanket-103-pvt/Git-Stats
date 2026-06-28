@@ -2,7 +2,7 @@
 
 GitHub Profile Analyzer - explore any public GitHub account without leaving the page.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit-blue?style=flat-square&logo=vercel)](https://gitstats.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit-blue?style=flat-square&logo=vercel)](https://git-stats-103.vercel.app/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
