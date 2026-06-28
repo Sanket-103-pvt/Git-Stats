@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --gs-bg: #0d1117;
+    --gs-surface: #161b22;
+    --gs-surface-alt: #0d1117;
+    --gs-border: #30363d;
+    --gs-text: #e6edf3;
+    --gs-text-secondary: #8b949e;
+    --gs-accent: #58a6ff;
+    --gs-success: #3fb950;
+    --gs-warning: #d29922;
+    --gs-error: #f85149;
+  }
+
+  html.dark {
+    color-scheme: dark;
+    --gs-bg: #0d1117;
+    --gs-surface: #161b22;
+    --gs-surface-alt: #0d1117;
+    --gs-border: #30363d;
+    --gs-text: #e6edf3;
+    --gs-text-secondary: #8b949e;
+    --gs-accent: #58a6ff;
+    --gs-success: #3fb950;
+    --gs-warning: #d29922;
+    --gs-error: #f85149;
+  }
+
+  html:not(.dark) {
+    color-scheme: light;
+    --gs-bg: #ffffff;
+    --gs-surface: #f6f8fa;
+    --gs-surface-alt: #ffffff;
+    --gs-border: #d0d7de;
+    --gs-text: #1f2328;
+    --gs-text-secondary: #656d76;
+    --gs-accent: #0969da;
+    --gs-success: #1a7f37;
+    --gs-warning: #9a6700;
+    --gs-error: #cf222e;
+  }
+
+  body {
+    @apply min-h-screen bg-[var(--gs-bg)] text-[var(--gs-text)] antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  * {
+    @apply border-[var(--gs-border)];
+  }
+
+  ::selection {
+    background: rgba(88, 166, 255, 0.28);
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)];
+  }
+
+  .surface {
+    @apply bg-[var(--gs-surface)] text-[var(--gs-text)];
+  }
+}
