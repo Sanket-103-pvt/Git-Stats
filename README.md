@@ -53,7 +53,7 @@ GitHub Profile Analyzer - explore any public GitHub account without leaving the 
 ### Installation
 
 ```bash
-git clone https://github.com/Sanket-103-pvt/Git-Stats.git
+git clone https://github.com/purvachopade1016/Git-Stats.git
 cd Git-Stats
 npm install
 npm run dev
@@ -109,6 +109,4 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 ## Author
 
-Sanket Chaudhari
-B.Tech Artificial Intelligence and Data Science, KKWIEER 2027
-GitHub: [@Sanket-103-pvt](https://github.com/Sanket-103-pvt)
+GitHub: [@purvachopade1016](https://github.com/purvachopade1016)
