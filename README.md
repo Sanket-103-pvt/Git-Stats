@@ -90,7 +90,7 @@ GitStats/
 
 ## API Usage
 
-The app uses unauthenticated GitHub REST API v3 calls. Unauthenticated requests are subject to GitHub rate limits of 60 requests per hour per IP address.
+The app uses GitHub REST API v3 calls. Unauthenticated requests are subject to GitHub rate limits of 60 requests per hour per IP address.
 
 Endpoints used:
 
@@ -98,6 +98,30 @@ Endpoints used:
 GET https://api.github.com/users/{username}
 GET https://api.github.com/users/{username}/repos?per_page=100&sort=updated
 ```
+
+## Increasing API Rate Limit
+
+By using a GitHub Personal Access Token, you can increase the rate limit from 60 to 5000 requests per hour.
+
+### Step 1: Create a Personal Access Token
+1. Go to [GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Give your token a descriptive name
+4. Select the `public_repo` scope (only read-only access to public repositories is needed)
+5. Click "Generate token"
+6. **Copy the token immediately** - you won't be able to see it again!
+
+### Step 2: Configure the Token
+1. Copy the `.env.example` file to `.env` in the project root:
+   ```bash
+   cp .env.example .env
+   ```
+2. Open `.env` and replace `your_github_personal_access_token_here` with the token you just created
+3. Restart your dev server (`npm run dev`) for the changes to take effect
+
+### Important Notes
+- Never commit your `.env` file (it's already in `.gitignore`)
+- Keep your token secure and don't share it publicly
 
 ## Contributing
 
