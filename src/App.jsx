@@ -17,9 +17,11 @@ function getInitialTheme() {
 }
 
 async function fetchGitHubJson(url) {
+  const token = import.meta.env.VITE_GITHUB_TOKEN;
   const response = await fetch(url, {
     headers: {
       Accept: 'application/vnd.github+json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
 
