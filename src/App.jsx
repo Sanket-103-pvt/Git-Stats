@@ -33,6 +33,17 @@ async function fetchGitHubJson(url) {
   throw error;
 }
 
+// Cap on repo pages fetched per search. 100 repos/page, so this covers up to
+// 1000 repositories while bounding requests against GitHub's unauthenticated
+// 60/hour limit for exceptionally prolific accounts.
+const MAX_REPO_PAGES = 10;
+
+function reposPageUrl(username, page) {
+  return `https://api.github.com/users/${encodeURIComponent(
+    username
+  )}/repos?per_page=100&sort=updated&page=${page}`;
+}
+
 function formatRelativeYears(createdAt) {
   const start = new Date(createdAt).getTime();
   const years = Math.floor((Date.now() - start) / (1000 * 60 * 60 * 24 * 365.25));
@@ -84,13 +95,37 @@ function App() {
     setSearchedUsername(username);
 
     try {
-      const [profileData, reposData] = await Promise.all([
+      const [profileData, firstPage] = await Promise.all([
         fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}`),
-        fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=100&sort=updated`),
+        fetchGitHubJson(reposPageUrl(username, 1)),
       ]);
 
       if (requestIdRef.current !== requestId) {
         return;
+      }
+
+      // Paginate the repos endpoint so aggregate stats (Total Stars, Top
+      // Language, language breakdown, Top Repos) are computed over ALL
+      // repositories rather than only the first 100 most-recently-updated.
+      // public_repos tells us exactly how many pages exist; MAX_REPO_PAGES
+      // bounds the request count for very prolific users.
+      let reposData = firstPage;
+      const totalPages = Math.min(
+        Math.ceil((profileData.public_repos || 0) / 100),
+        MAX_REPO_PAGES
+      );
+      if (totalPages > 1) {
+        const remainingPages = await Promise.all(
+          Array.from({ length: totalPages - 1 }, (_, index) =>
+            fetchGitHubJson(reposPageUrl(username, index + 2))
+          )
+        );
+
+        if (requestIdRef.current !== requestId) {
+          return;
+        }
+
+        reposData = firstPage.concat(remainingPages.flat());
       }
 
       setProfile(profileData);
