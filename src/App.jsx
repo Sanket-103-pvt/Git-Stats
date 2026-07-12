@@ -6,6 +6,7 @@ import LanguageChart from './components/LanguageChart';
 import RepoCard from './components/RepoCard';
 import CompareView from './components/CompareView';
 import RepoFilters from './components/RepoFilters';
+import AchievementBadges from './components/AchievementBadges';
 import ContributionHeatmap from './components/ContributionHeatmap';
 import SearchHistory from './components/SearchHistory';
 
@@ -630,6 +631,8 @@ function App() {
             {loading || profile ? <ProfileCard profile={profile} loading={loading} /> : null}
 
             {loading || profile ? <StatsBar repos={repos} profile={profile} loading={loading} /> : null}
+
+            {loading || profile ? <AchievementBadges repos={repos} profile={profile} loading={loading} /> : null}
 
             {/* Contribution heatmap — shown only in single-profile mode */}
             {loading || profile ? (
