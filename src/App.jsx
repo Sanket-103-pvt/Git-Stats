@@ -55,12 +55,6 @@ function App() {
     window.localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
-  useEffect(() => {
-    setInputValue('sanket1035');
-    void handleSearch('sanket1035');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const topRepos = useMemo(
     () => [...repos].sort((left, right) => right.stargazers_count - left.stargazers_count).slice(0, 6),
     [repos],
