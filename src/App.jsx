@@ -8,6 +8,7 @@ import CompareView from './components/CompareView';
 import RepoFilters from './components/RepoFilters';
 import AchievementBadges from './components/AchievementBadges';
 import ActivityInsights from './components/ActivityInsights';
+import GitHubWrapped from './components/GitHubWrapped';
 import ContributionHeatmap from './components/ContributionHeatmap';
 import SearchHistory from './components/SearchHistory';
 
@@ -487,14 +488,23 @@ function App() {
             </button>
 
             {profile && !compareMode && (
-              <button
-                type="button"
-                onClick={handleShareLink}
-                className="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] transition animate-fade-in"
-              >
-                <Share2 className="h-4.5 w-4.5" />
-                <span className="hidden sm:inline">Share</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleShareLink}
+                  className="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] transition animate-fade-in"
+                >
+                  <Share2 className="h-4.5 w-4.5" />
+                  <span className="hidden sm:inline">Share</span>
+                </button>
+
+                <GitHubWrapped
+                  profile={profile}
+                  repos={repos}
+                  eventTimestamps={eventTimestamps}
+                  onCopyShareLink={handleShareLink}
+                />
+              </div>
             )}
 
             <button
