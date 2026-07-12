@@ -1,4 +1,5 @@
 import { ExternalLink, MapPin } from 'lucide-react';
+import useCountUp, { formatStatValue } from '../hooks/useCountUp';
 
 function StatBlock({ label, value, loading }) {
   if (loading) {
@@ -41,6 +42,10 @@ function ProfileCard({ profile, loading }) {
     return null;
   }
 
+  const animatedFollowers = useCountUp(profile.followers);
+  const animatedFollowing = useCountUp(profile.following);
+  const animatedRepos = useCountUp(profile.public_repos);
+
   return (
     <section className="panel p-5 sm:p-6 animate-fade-in-up opacity-0">
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
@@ -79,9 +84,9 @@ function ProfileCard({ profile, loading }) {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-          <StatBlock label="Followers" value={profile.followers.toLocaleString()} />
-          <StatBlock label="Following" value={profile.following.toLocaleString()} />
-          <StatBlock label="Public Repos" value={profile.public_repos.toLocaleString()} />
+          <StatBlock label="Followers" value={formatStatValue(animatedFollowers, profile.followers)} />
+          <StatBlock label="Following" value={formatStatValue(animatedFollowing, profile.following)} />
+          <StatBlock label="Public Repos" value={formatStatValue(animatedRepos, profile.public_repos)} />
         </div>
       </div>
     </section>
