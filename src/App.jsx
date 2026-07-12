@@ -5,6 +5,7 @@ import StatsBar from './components/StatsBar';
 import LanguageChart from './components/LanguageChart';
 import RepoCard from './components/RepoCard';
 import CompareView from './components/CompareView';
+import RepoFilters from './components/RepoFilters';
 import ContributionHeatmap from './components/ContributionHeatmap';
 import SearchHistory from './components/SearchHistory';
 
@@ -92,6 +93,11 @@ function App() {
     }
   });
 
+  const [filterLanguage, setFilterLanguage] = useState('');
+  const [sortBy, setSortBy] = useState('stars');
+  const [isGridFading, setIsGridFading] = useState(false);
+  const [displayRepos, setDisplayRepos] = useState([]);
+
   const requestIdRef = useRef(0);
 
   useEffect(() => {
@@ -122,10 +128,44 @@ function App() {
     window.localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
-  const topRepos = useMemo(
-    () => [...repos].sort((left, right) => right.stargazers_count - left.stargazers_count).slice(0, 6),
-    [repos],
-  );
+  const languages = useMemo(() => {
+    const langs = new Set();
+    repos.forEach((repo) => {
+      if (repo.language) {
+        langs.add(repo.language);
+      }
+    });
+    return Array.from(langs).sort();
+  }, [repos]);
+
+  const filteredRepos = useMemo(() => {
+    let result = [...repos];
+
+    if (filterLanguage) {
+      result = result.filter((repo) => repo.language === filterLanguage);
+    }
+
+    if (sortBy === 'stars') {
+      result.sort((left, right) => right.stargazers_count - left.stargazers_count);
+    } else if (sortBy === 'forks') {
+      result.sort((left, right) => right.forks_count - left.forks_count);
+    } else if (sortBy === 'updated') {
+      result.sort((left, right) => new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime());
+    } else if (sortBy === 'name') {
+      result.sort((left, right) => left.name.localeCompare(right.name));
+    }
+
+    return result;
+  }, [repos, filterLanguage, sortBy]);
+
+  useEffect(() => {
+    setIsGridFading(true);
+    const timer = setTimeout(() => {
+      setDisplayRepos(filteredRepos);
+      setIsGridFading(false);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [filteredRepos]);
 
   const hasLanguageData = useMemo(() => repos.some((repo) => repo.language), [repos]);
 
@@ -201,6 +241,8 @@ function App() {
     setSearchedUsername(username);
     setActivityMap(null);
     setEventsLoading(true);
+    setFilterLanguage('');
+    setSortBy('stars');
 
     if (isCompare) {
       setLoading2(true);
@@ -322,7 +364,7 @@ function App() {
   };
 
   const showIntro = !loading && !profile && !error && (!compareMode || (!loading2 && !profile2 && !error2));
-  const showRepoEmptyState = profile && !loading && topRepos.length === 0;
+  const showRepoEmptyState = profile && !loading && repos.length === 0;
   const showLanguageEmptyState = profile && !loading && !hasLanguageData;
 
   return (
@@ -527,27 +569,43 @@ function App() {
 
             {loading ? (
               <section>
-                <div className="mb-3 text-sm font-medium text-[var(--gs-text-secondary)]">Top repositories</div>
+                <div className="mb-3 text-sm font-medium text-[var(--gs-text-secondary)]">Repositories</div>
                 <div className="grid gap-4 lg:grid-cols-2">
                   {Array.from({ length: 6 }).map((_, index) => (
                     <RepoCard key={index} index={index} loading />
                   ))}
                 </div>
               </section>
-            ) : profile && topRepos.length > 0 ? (
-              <section>
-                <div className="mb-3 flex items-end justify-between gap-3">
+            ) : profile && repos.length > 0 ? (
+              <section className="flex flex-col gap-4 animate-fade-in-up">
+                <div className="flex items-end justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-semibold text-[var(--gs-text)]">Top Repositories</h2>
-                    <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">Sorted by stars. Public repos only, with the strongest signals first.</p>
+                    <h2 className="text-lg font-semibold text-[var(--gs-text)]">Repositories</h2>
+                    <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">Public repositories for this account.</p>
                   </div>
-                  <div className="text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">{topRepos.length} shown</div>
                 </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  {topRepos.map((repo, index) => (
-                    <RepoCard key={repo.id} repo={repo} index={index} />
-                  ))}
-                </div>
+
+                <RepoFilters
+                  languages={languages}
+                  filterLanguage={filterLanguage}
+                  setFilterLanguage={setFilterLanguage}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  filteredCount={filteredRepos.length}
+                  totalCount={repos.length}
+                />
+
+                {displayRepos.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-[var(--gs-border)] bg-[var(--gs-surface-alt)] p-8 text-center text-sm text-[var(--gs-text-secondary)]">
+                    No repositories match the selected language filter.
+                  </div>
+                ) : (
+                  <div className={`grid gap-4 lg:grid-cols-2 transition-opacity duration-150 ${isGridFading ? 'opacity-0' : 'opacity-100'}`}>
+                    {displayRepos.map((repo, index) => (
+                      <RepoCard key={repo.id} repo={repo} index={index} />
+                    ))}
+                  </div>
+                )}
               </section>
             ) : null}
           </>
