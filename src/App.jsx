@@ -5,6 +5,7 @@ import StatsBar from './components/StatsBar';
 import LanguageChart from './components/LanguageChart';
 import RepoCard from './components/RepoCard';
 import CompareView from './components/CompareView';
+import ContributionHeatmap from './components/ContributionHeatmap';
 
 const THEME_KEY = 'gitstats-theme';
 
@@ -63,7 +64,7 @@ function App() {
   const [searchedUsername, setSearchedUsername] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isThemeSpinning, setIsThemeSpinning] = useState(false);
-  
+
   // Comparison Mode States
   const [compareMode, setCompareMode] = useState(false);
   const [inputValue2, setInputValue2] = useState('');
@@ -72,6 +73,13 @@ function App() {
   const [loading2, setLoading2] = useState(false);
   const [error2, setError2] = useState(null);
   const [searchedUsername2, setSearchedUsername2] = useState('');
+
+  // activityMap: { 'YYYY-MM-DD': eventCount } built from the public Events API.
+  // Note: GitHub's Events API only returns the last ~90 days of activity (up to
+  // 300 events across 3 pages). This is an approximation — not the full
+  // contribution graph which requires the authenticated GraphQL API.
+  const [activityMap, setActivityMap] = useState(null);
+  const [eventsLoading, setEventsLoading] = useState(false);
 
   const requestIdRef = useRef(0);
 
@@ -166,6 +174,8 @@ function App() {
     setProfile(null);
     setRepos([]);
     setSearchedUsername(username);
+    setActivityMap(null);
+    setEventsLoading(true);
 
     if (isCompare) {
       setLoading2(true);
@@ -206,6 +216,37 @@ function App() {
         }
         setProfile(res.profile);
         setRepos(res.repos);
+
+        // Fetch public events for the heatmap (up to 3 pages × 100 = 300 events).
+        // Events are limited to roughly the last 90 days by GitHub's API.
+        try {
+          const eventPages = await Promise.all([
+            fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100&page=1`),
+            fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100&page=2`),
+            fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100&page=3`),
+          ]);
+
+          if (requestIdRef.current !== requestId) return;
+
+          const allEvents = eventPages.flat();
+          const map = {};
+          for (const evt of allEvents) {
+            if (!evt.created_at) continue;
+            // Convert the UTC timestamp to a local YYYY-MM-DD key.
+            const localDate = new Date(evt.created_at);
+            const y = localDate.getFullYear();
+            const m = String(localDate.getMonth() + 1).padStart(2, '0');
+            const d = String(localDate.getDate()).padStart(2, '0');
+            const key = `${y}-${m}-${d}`;
+            map[key] = (map[key] || 0) + 1;
+          }
+          setActivityMap(map);
+        } catch {
+          // Events API failing should not break the rest of the profile view.
+          setActivityMap({});
+        } finally {
+          setEventsLoading(false);
+        }
       }
     } catch (caughtError) {
       if (requestIdRef.current !== requestId) {
@@ -247,20 +288,6 @@ function App() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
-              setIsThemeSpinning(true);
-            }}
-            onAnimationEnd={() => setIsThemeSpinning(false)}
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] transition hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] ${
-              isThemeSpinning ? 'animate-spin-once' : ''
-            }`}
-          >
-            {theme === 'dark' ? <SunMedium className="h-4.5 w-4.5" /> : <MoonStar className="h-4.5 w-4.5" />}
-          </button>
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -285,9 +312,15 @@ function App() {
 
             <button
               type="button"
-              onClick={() => setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))}
+              onClick={() => {
+                setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
+                setIsThemeSpinning(true);
+              }}
+              onAnimationEnd={() => setIsThemeSpinning(false)}
               aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] transition hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)]"
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] transition hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] ${
+                isThemeSpinning ? 'animate-spin-once' : ''
+              }`}
             >
               {theme === 'dark' ? <SunMedium className="h-4.5 w-4.5" /> : <MoonStar className="h-4.5 w-4.5" />}
             </button>
@@ -381,32 +414,6 @@ function App() {
           </section>
         ) : null}
 
-        {loading || profile ? <ProfileCard profile={profile} loading={loading} /> : null}
-
-        {loading || profile ? <StatsBar repos={repos} profile={profile} loading={loading} /> : null}
-
-        {loading || profile ? <LanguageChart repos={repos} loading={loading} /> : null}
-
-        {showLanguageEmptyState && profile ? (
-          <section className="panel px-5 py-4 text-sm text-[var(--gs-text-secondary)]">Language data unavailable for this account.</section>
-        ) : null}
-
-        {showRepoEmptyState ? (
-          <section className="panel px-5 py-4 text-sm text-[var(--gs-text-secondary)]">No public repositories yet.</section>
-        ) : null}
-
-        {loading ? (
-          <section>
-            <div className="mb-3 text-sm font-medium text-[var(--gs-text-secondary)]">Top repositories</div>
-            <div className="grid gap-4 lg:grid-cols-2">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <RepoCard key={index} index={index} loading />
-              ))}
-            </div>
-          </section>
-        ) : profile && topRepos.length > 0 ? (
-          <section>
-            <div className="mb-3 flex items-end justify-between gap-3">
         {compareMode && error2 ? (
           <section className="rounded-lg border border-[var(--gs-error)] bg-[var(--gs-surface-alt)] px-5 py-4 text-[var(--gs-text)]">
             <div className="flex items-start gap-3">
@@ -416,12 +423,6 @@ function App() {
                 <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">{error2}</p>
                 {searchedUsername2 ? <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">Query: {searchedUsername2}</p> : null}
               </div>
-              <div className="text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">{topRepos.length} shown</div>
-            </div>
-            <div className="grid gap-4 lg:grid-cols-2">
-              {topRepos.map((repo, index) => (
-                <RepoCard key={repo.id} repo={repo} index={index} />
-              ))}
             </div>
           </section>
         ) : null}
@@ -443,6 +444,15 @@ function App() {
 
             {loading || profile ? <StatsBar repos={repos} profile={profile} loading={loading} /> : null}
 
+            {/* Contribution heatmap — shown only in single-profile mode */}
+            {loading || profile ? (
+              <ContributionHeatmap
+                activityMap={activityMap}
+                loading={eventsLoading || loading}
+                username={searchedUsername}
+              />
+            ) : null}
+
             {loading || profile ? <LanguageChart repos={repos} loading={loading} /> : null}
 
             {showLanguageEmptyState && profile ? (
@@ -458,7 +468,7 @@ function App() {
                 <div className="mb-3 text-sm font-medium text-[var(--gs-text-secondary)]">Top repositories</div>
                 <div className="grid gap-4 lg:grid-cols-2">
                   {Array.from({ length: 6 }).map((_, index) => (
-                    <RepoCard key={index} loading />
+                    <RepoCard key={index} index={index} loading />
                   ))}
                 </div>
               </section>
@@ -472,8 +482,8 @@ function App() {
                   <div className="text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">{topRepos.length} shown</div>
                 </div>
                 <div className="grid gap-4 lg:grid-cols-2">
-                  {topRepos.map((repo) => (
-                    <RepoCard key={repo.id} repo={repo} />
+                  {topRepos.map((repo, index) => (
+                    <RepoCard key={repo.id} repo={repo} index={index} />
                   ))}
                 </div>
               </section>
