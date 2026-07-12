@@ -17,7 +17,7 @@ function StatTile({ label, value }) {
   );
 }
 
-function getAccountAge(createdAt) {
+export function getAccountAge(createdAt) {
   if (!createdAt) {
     return 0;
   }
@@ -27,7 +27,7 @@ function getAccountAge(createdAt) {
   return Math.max(0, Math.floor(years));
 }
 
-function getLanguageSummary(repos) {
+export function getLanguageSummary(repos) {
   const counts = repos.reduce((accumulator, repo) => {
     if (repo.language) {
       accumulator[repo.language] = (accumulator[repo.language] || 0) + 1;
