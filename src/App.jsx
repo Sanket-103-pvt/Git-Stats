@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, ArrowUp, LoaderCircle, MoonStar, Search, SunMedium } from 'lucide-react';
+import { AlertCircle, ArrowUp, GitCompare, LoaderCircle, MoonStar, Search, SunMedium } from 'lucide-react';
 import ProfileCard from './components/ProfileCard';
 import StatsBar from './components/StatsBar';
 import LanguageChart from './components/LanguageChart';
 import RepoCard from './components/RepoCard';
+import CompareView from './components/CompareView';
 
 const THEME_KEY = 'gitstats-theme';
 
@@ -62,6 +63,16 @@ function App() {
   const [searchedUsername, setSearchedUsername] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isThemeSpinning, setIsThemeSpinning] = useState(false);
+  
+  // Comparison Mode States
+  const [compareMode, setCompareMode] = useState(false);
+  const [inputValue2, setInputValue2] = useState('');
+  const [profile2, setProfile2] = useState(null);
+  const [repos2, setRepos2] = useState([]);
+  const [loading2, setLoading2] = useState(false);
+  const [error2, setError2] = useState(null);
+  const [searchedUsername2, setSearchedUsername2] = useState('');
+
   const requestIdRef = useRef(0);
 
   useEffect(() => {
@@ -99,9 +110,51 @@ function App() {
 
   const hasLanguageData = useMemo(() => repos.some((repo) => repo.language), [repos]);
 
-  async function handleSearch(submittedUsername = inputValue) {
+  async function fetchUserData(username) {
+    const [profileData, firstPage] = await Promise.all([
+      fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}`),
+      fetchGitHubJson(reposPageUrl(username, 1)),
+    ]);
+
+    let reposData = firstPage;
+    const totalPages = Math.min(
+      Math.ceil((profileData.public_repos || 0) / 100),
+      MAX_REPO_PAGES
+    );
+    if (totalPages > 1) {
+      const remainingPages = await Promise.all(
+        Array.from({ length: totalPages - 1 }, (_, index) =>
+          fetchGitHubJson(reposPageUrl(username, index + 2))
+        )
+      );
+      reposData = firstPage.concat(remainingPages.flat());
+    }
+
+    return { profile: profileData, repos: reposData };
+  }
+
+  function getErrorMessage(caughtError, username) {
+    if (caughtError.status === 404) {
+      return `User "${username}" not found. Check spelling.`;
+    } else if (caughtError.status === 403) {
+      return 'GitHub API rate limit reached. Try again in about an hour.';
+    } else {
+      return 'Network error. Check your connection and try again.';
+    }
+  }
+
+  async function handleSearch(
+    submittedUsername = inputValue,
+    submittedUsername2 = inputValue2,
+    isCompare = compareMode
+  ) {
     const username = submittedUsername.trim();
+    const username2 = submittedUsername2.trim();
+
     if (!username) {
+      return;
+    }
+    if (isCompare && !username2) {
       return;
     }
 
@@ -114,57 +167,55 @@ function App() {
     setRepos([]);
     setSearchedUsername(username);
 
+    if (isCompare) {
+      setLoading2(true);
+      setError2(null);
+      setProfile2(null);
+      setRepos2([]);
+      setSearchedUsername2(username2);
+    }
+
     try {
-      const [profileData, firstPage] = await Promise.all([
-        fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}`),
-        fetchGitHubJson(reposPageUrl(username, 1)),
-      ]);
-
-      if (requestIdRef.current !== requestId) {
-        return;
-      }
-
-      // Paginate the repos endpoint so aggregate stats (Total Stars, Top
-      // Language, language breakdown, Top Repos) are computed over ALL
-      // repositories rather than only the first 100 most-recently-updated.
-      // public_repos tells us exactly how many pages exist; MAX_REPO_PAGES
-      // bounds the request count for very prolific users.
-      let reposData = firstPage;
-      const totalPages = Math.min(
-        Math.ceil((profileData.public_repos || 0) / 100),
-        MAX_REPO_PAGES
-      );
-      if (totalPages > 1) {
-        const remainingPages = await Promise.all(
-          Array.from({ length: totalPages - 1 }, (_, index) =>
-            fetchGitHubJson(reposPageUrl(username, index + 2))
-          )
-        );
+      if (isCompare) {
+        const [res1, res2] = await Promise.allSettled([
+          fetchUserData(username),
+          fetchUserData(username2),
+        ]);
 
         if (requestIdRef.current !== requestId) {
           return;
         }
 
-        reposData = firstPage.concat(remainingPages.flat());
-      }
+        if (res1.status === 'fulfilled') {
+          setProfile(res1.value.profile);
+          setRepos(res1.value.repos);
+        } else {
+          setError(getErrorMessage(res1.reason, username));
+        }
 
-      setProfile(profileData);
-      setRepos(reposData);
+        if (res2.status === 'fulfilled') {
+          setProfile2(res2.value.profile);
+          setRepos2(res2.value.repos);
+        } else {
+          setError2(getErrorMessage(res2.reason, username2));
+        }
+      } else {
+        const res = await fetchUserData(username);
+        if (requestIdRef.current !== requestId) {
+          return;
+        }
+        setProfile(res.profile);
+        setRepos(res.repos);
+      }
     } catch (caughtError) {
       if (requestIdRef.current !== requestId) {
         return;
       }
-
-      if (caughtError.status === 404) {
-        setError(`User \"${username}\" not found. Check spelling.`);
-      } else if (caughtError.status === 403) {
-        setError('GitHub API rate limit reached. Try again in about an hour.');
-      } else {
-        setError('Network error. Check your connection and try again.');
-      }
+      setError(getErrorMessage(caughtError, username));
     } finally {
       if (requestIdRef.current === requestId) {
         setLoading(false);
+        setLoading2(false);
       }
     }
   }
@@ -174,7 +225,7 @@ function App() {
     handleSearch();
   }
 
-  const showIntro = !loading && !profile && !error;
+  const showIntro = !loading && !profile && !error && (!compareMode || (!loading2 && !profile2 && !error2));
   const showRepoEmptyState = profile && !loading && topRepos.length === 0;
   const showLanguageEmptyState = profile && !loading && !hasLanguageData;
 
@@ -210,6 +261,37 @@ function App() {
           >
             {theme === 'dark' ? <SunMedium className="h-4.5 w-4.5" /> : <MoonStar className="h-4.5 w-4.5" />}
           </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setCompareMode(!compareMode);
+                setProfile(null);
+                setRepos([]);
+                setProfile2(null);
+                setRepos2([]);
+                setError(null);
+                setError2(null);
+              }}
+              className={`inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border transition ${
+                compareMode
+                  ? 'border-[var(--gs-accent)] bg-[var(--gs-accent)]/10 text-[var(--gs-accent)]'
+                  : 'border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)]'
+              }`}
+            >
+              <GitCompare className="h-4.5 w-4.5" />
+              <span className="hidden sm:inline">Compare</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] transition hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)]"
+            >
+              {theme === 'dark' ? <SunMedium className="h-4.5 w-4.5" /> : <MoonStar className="h-4.5 w-4.5" />}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -227,37 +309,61 @@ function App() {
           </div>
 
           <form onSubmit={handleSubmit} className="relative z-10 mx-auto mt-6 max-w-3xl">
-            <label className="sr-only" htmlFor="username-search">
-              GitHub username
-            </label>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="flex flex-1 items-center gap-3 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-4 py-3 focus-within:border-[var(--gs-accent)] focus-within:ring-2 focus-within:ring-[var(--gs-accent)]">
-                <Search className="h-4.5 w-4.5 shrink-0 text-[var(--gs-text-secondary)]" />
-                <input
-                  id="username-search"
-                  value={inputValue}
-                  onChange={(event) => setInputValue(event.target.value)}
-                  placeholder="Enter a GitHub username"
-                  autoComplete="off"
-                  spellCheck="false"
-                  aria-label="GitHub username"
-                  className="w-full bg-transparent text-sm text-[var(--gs-text)] outline-none placeholder:text-[var(--gs-text-secondary)]"
-                />
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex flex-1 items-center gap-3 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-4 py-3 focus-within:border-[var(--gs-accent)] focus-within:ring-2 focus-within:ring-[var(--gs-accent)]">
+                  <Search className="h-4.5 w-4.5 shrink-0 text-[var(--gs-text-secondary)]" />
+                  <input
+                    id="username-search"
+                    value={inputValue}
+                    onChange={(event) => setInputValue(event.target.value)}
+                    placeholder={compareMode ? "First GitHub username" : "Enter a GitHub username"}
+                    autoComplete="off"
+                    spellCheck="false"
+                    aria-label="First GitHub username"
+                    className="w-full bg-transparent text-sm text-[var(--gs-text)] outline-none placeholder:text-[var(--gs-text-secondary)]"
+                  />
+                </div>
+
+                {compareMode && (
+                  <div className="flex flex-1 items-center gap-3 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-4 py-3 focus-within:border-[var(--gs-accent)] focus-within:ring-2 focus-within:ring-[var(--gs-accent)]">
+                    <Search className="h-4.5 w-4.5 shrink-0 text-[var(--gs-text-secondary)]" />
+                    <input
+                      id="username-search-2"
+                      value={inputValue2}
+                      onChange={(event) => setInputValue2(event.target.value)}
+                      placeholder="Second GitHub username"
+                      autoComplete="off"
+                      spellCheck="false"
+                      aria-label="Second GitHub username"
+                      className="w-full bg-transparent text-sm text-[var(--gs-text)] outline-none placeholder:text-[var(--gs-text-secondary)]"
+                    />
+                  </div>
+                )}
               </div>
+
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (compareMode && loading2)}
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--gs-accent)] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {loading ? <LoaderCircle className="h-4.5 w-4.5 animate-spin" /> : <Search className="h-4.5 w-4.5" />}
-                Search
+                {loading || loading2 ? <LoaderCircle className="h-4.5 w-4.5 animate-spin" /> : <Search className="h-4.5 w-4.5" />}
+                {compareMode ? 'Compare Profiles' : 'Search'}
               </button>
             </div>
           </form>
 
           {showIntro ? (
             <div className="relative z-10 mx-auto mt-8 max-w-2xl rounded-lg border border-dashed border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-5 py-6 text-center text-sm text-[var(--gs-text-secondary)]">
-              Start with a username like <span className="font-medium text-[var(--gs-text)]">sanket1035</span> to load a full profile summary.
+              {compareMode ? (
+                <span>
+                  Start by entering two usernames like <span className="font-medium text-[var(--gs-text)]">sanket1035</span> and <span className="font-medium text-[var(--gs-text)]">torvalds</span> to compare.
+                </span>
+              ) : (
+                <span>
+                  Start with a username like <span className="font-medium text-[var(--gs-text)]">sanket1035</span> to load a full profile summary.
+                </span>
+              )}
             </div>
           ) : null}
         </section>
@@ -267,7 +373,7 @@ function App() {
             <div className="flex items-start gap-3">
               <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--gs-error)]" />
               <div>
-                <div className="font-semibold">Search failed</div>
+                <div className="font-semibold">Search failed {compareMode && '(User 1)'}</div>
                 <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">{error}</p>
                 {searchedUsername ? <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">Query: {searchedUsername}</p> : null}
               </div>
@@ -301,9 +407,14 @@ function App() {
         ) : profile && topRepos.length > 0 ? (
           <section>
             <div className="mb-3 flex items-end justify-between gap-3">
+        {compareMode && error2 ? (
+          <section className="rounded-lg border border-[var(--gs-error)] bg-[var(--gs-surface-alt)] px-5 py-4 text-[var(--gs-text)]">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--gs-error)]" />
               <div>
-                <h2 className="text-lg font-semibold text-[var(--gs-text)]">Top Repositories</h2>
-                <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">Sorted by stars. Public repos only, with the strongest signals first.</p>
+                <div className="font-semibold">Search failed (User 2)</div>
+                <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">{error2}</p>
+                {searchedUsername2 ? <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">Query: {searchedUsername2}</p> : null}
               </div>
               <div className="text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">{topRepos.length} shown</div>
             </div>
@@ -315,13 +426,68 @@ function App() {
           </section>
         ) : null}
 
-        {!loading && !profile && !error ? (
+        {compareMode ? (
+          (loading || loading2 || profile || profile2) ? (
+            <CompareView
+              profile1={profile}
+              repos1={repos}
+              loading1={loading}
+              profile2={profile2}
+              repos2={repos2}
+              loading2={loading2}
+            />
+          ) : null
+        ) : (
+          <>
+            {loading || profile ? <ProfileCard profile={profile} loading={loading} /> : null}
+
+            {loading || profile ? <StatsBar repos={repos} profile={profile} loading={loading} /> : null}
+
+            {loading || profile ? <LanguageChart repos={repos} loading={loading} /> : null}
+
+            {showLanguageEmptyState && profile ? (
+              <section className="panel px-5 py-4 text-sm text-[var(--gs-text-secondary)]">Language data unavailable for this account.</section>
+            ) : null}
+
+            {showRepoEmptyState ? (
+              <section className="panel px-5 py-4 text-sm text-[var(--gs-text-secondary)]">No public repositories yet.</section>
+            ) : null}
+
+            {loading ? (
+              <section>
+                <div className="mb-3 text-sm font-medium text-[var(--gs-text-secondary)]">Top repositories</div>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <RepoCard key={index} loading />
+                  ))}
+                </div>
+              </section>
+            ) : profile && topRepos.length > 0 ? (
+              <section>
+                <div className="mb-3 flex items-end justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold text-[var(--gs-text)]">Top Repositories</h2>
+                    <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">Sorted by stars. Public repos only, with the strongest signals first.</p>
+                  </div>
+                  <div className="text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">{topRepos.length} shown</div>
+                </div>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {topRepos.map((repo) => (
+                    <RepoCard key={repo.id} repo={repo} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </>
+        )}
+
+        {!loading && !profile && !error && (!compareMode || (!loading2 && !profile2 && !error2)) ? (
           <div className="flex justify-center pb-8 pt-2 text-xs uppercase tracking-[0.22em] text-[var(--gs-text-secondary)]">
-            Search a username to begin.
+            {compareMode ? 'Search two usernames to begin comparison.' : 'Search a username to begin.'}
           </div>
         ) : null}
 
-        {profile ? (
+        {profile && !compareMode ? (
           <div className="pb-2 text-right text-[11px] uppercase tracking-[0.2em] text-[var(--gs-text-secondary)]">
             Account age: {formatRelativeYears(profile.created_at)} years
           </div>
