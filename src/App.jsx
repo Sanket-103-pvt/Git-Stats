@@ -7,6 +7,7 @@ import RepoCard from './components/RepoCard';
 import CompareView from './components/CompareView';
 import RepoFilters from './components/RepoFilters';
 import AchievementBadges from './components/AchievementBadges';
+import ActivityInsights from './components/ActivityInsights';
 import ContributionHeatmap from './components/ContributionHeatmap';
 import SearchHistory from './components/SearchHistory';
 
@@ -84,6 +85,7 @@ function App() {
   // contribution graph which requires the authenticated GraphQL API.
   const [activityMap, setActivityMap] = useState(null);
   const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventTimestamps, setEventTimestamps] = useState([]);
 
   const [searchHistory, setSearchHistory] = useState(() => {
     try {
@@ -278,6 +280,7 @@ function App() {
     setRepos([]);
     setSearchedUsername(username);
     setActivityMap(null);
+    setEventTimestamps([]);
     setEventsLoading(true);
     setFilterLanguage('');
     setSortBy('stars');
@@ -345,8 +348,10 @@ function App() {
 
           const allEvents = eventPages.flat();
           const map = {};
+          const timestamps = [];
           for (const evt of allEvents) {
             if (!evt.created_at) continue;
+            timestamps.push(evt.created_at);
             // Convert the UTC timestamp to a local YYYY-MM-DD key.
             const localDate = new Date(evt.created_at);
             const y = localDate.getFullYear();
@@ -356,6 +361,7 @@ function App() {
             map[key] = (map[key] || 0) + 1;
           }
           setActivityMap(map);
+          setEventTimestamps(timestamps);
         } catch {
           // Events API failing should not break the rest of the profile view.
           setActivityMap({});
@@ -644,6 +650,13 @@ function App() {
             ) : null}
 
             {loading || profile ? <LanguageChart repos={repos} loading={loading} /> : null}
+
+            {loading || profile ? (
+              <ActivityInsights
+                eventTimestamps={eventTimestamps}
+                loading={eventsLoading || loading}
+              />
+            ) : null}
 
             {showLanguageEmptyState && profile ? (
               <section className="panel px-5 py-4 text-sm text-[var(--gs-text-secondary)]">Language data unavailable for this account.</section>
