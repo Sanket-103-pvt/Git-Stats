@@ -6,8 +6,10 @@ import LanguageChart from './components/LanguageChart';
 import RepoCard from './components/RepoCard';
 import CompareView from './components/CompareView';
 import ContributionHeatmap from './components/ContributionHeatmap';
+import SearchHistory from './components/SearchHistory';
 
 const THEME_KEY = 'gitstats-theme';
+const HISTORY_KEY = 'gitstats-history';
 
 function getInitialTheme() {
   if (typeof window === 'undefined') {
@@ -81,6 +83,15 @@ function App() {
   const [activityMap, setActivityMap] = useState(null);
   const [eventsLoading, setEventsLoading] = useState(false);
 
+  const [searchHistory, setSearchHistory] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem(HISTORY_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const requestIdRef = useRef(0);
 
   useEffect(() => {
@@ -141,6 +152,20 @@ function App() {
     return { profile: profileData, repos: reposData };
   }
 
+  const saveToHistory = (username) => {
+    if (!username) return;
+    setSearchHistory((prev) => {
+      const filtered = prev.filter((name) => name.toLowerCase() !== username.toLowerCase());
+      const updated = [username, ...filtered].slice(0, 5);
+      try {
+        window.localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+      } catch (err) {
+        console.error('Failed to save search history', err);
+      }
+      return updated;
+    });
+  };
+
   function getErrorMessage(caughtError, username) {
     if (caughtError.status === 404) {
       return `User "${username}" not found. Check spelling.`;
@@ -199,6 +224,7 @@ function App() {
         if (res1.status === 'fulfilled') {
           setProfile(res1.value.profile);
           setRepos(res1.value.repos);
+          saveToHistory(res1.value.profile.login);
         } else {
           setError(getErrorMessage(res1.reason, username));
         }
@@ -206,6 +232,7 @@ function App() {
         if (res2.status === 'fulfilled') {
           setProfile2(res2.value.profile);
           setRepos2(res2.value.repos);
+          saveToHistory(res2.value.profile.login);
         } else {
           setError2(getErrorMessage(res2.reason, username2));
         }
@@ -216,6 +243,7 @@ function App() {
         }
         setProfile(res.profile);
         setRepos(res.repos);
+        saveToHistory(res.profile.login);
 
         // Fetch public events for the heatmap (up to 3 pages × 100 = 300 events).
         // Events are limited to roughly the last 90 days by GitHub's API.
@@ -265,6 +293,33 @@ function App() {
     event.preventDefault();
     handleSearch();
   }
+
+  const handleSelectHistory = (username) => {
+    setCompareMode(false);
+    setInputValue(username);
+    handleSearch(username, '', false);
+  };
+
+  const handleRemoveHistory = (username) => {
+    setSearchHistory((prev) => {
+      const updated = prev.filter((name) => name !== username);
+      try {
+        window.localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+      } catch (err) {
+        console.error('Failed to remove history item', err);
+      }
+      return updated;
+    });
+  };
+
+  const handleClearHistory = () => {
+    setSearchHistory([]);
+    try {
+      window.localStorage.removeItem(HISTORY_KEY);
+    } catch (err) {
+      console.error('Failed to clear search history', err);
+    }
+  };
 
   const showIntro = !loading && !profile && !error && (!compareMode || (!loading2 && !profile2 && !error2));
   const showRepoEmptyState = profile && !loading && topRepos.length === 0;
@@ -374,6 +429,13 @@ function App() {
                   </div>
                 )}
               </div>
+
+              <SearchHistory
+                searchHistory={searchHistory}
+                onSelectHistory={handleSelectHistory}
+                onRemoveHistory={handleRemoveHistory}
+                onClearHistory={handleClearHistory}
+              />
 
               <button
                 type="submit"
