@@ -1,3 +1,5 @@
+import useCountUp, { formatStatValue } from '../hooks/useCountUp';
+
 function StatsSkeleton() {
   return (
     <div className="grid gap-3 md:grid-cols-3" aria-busy="true">
@@ -12,7 +14,7 @@ function StatsSkeleton() {
   );
 }
 
-function StatTile({ label, value, index = 0 }) {
+function StatTile({ label, value, triggerValue, index = 0 }) {
   return (
     <div
       style={{ animationDelay: `${index * 0.05}s` }}
@@ -20,7 +22,7 @@ function StatTile({ label, value, index = 0 }) {
     >
       <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">{label}</div>
       <div
-        key={value}
+        key={triggerValue ?? value}
         className="mt-2 text-lg font-semibold text-[var(--gs-text)] inline-block animate-count-pulse"
       >
         {value}
@@ -64,11 +66,14 @@ function StatsBar({ repos, profile, loading }) {
   const topLanguage = getLanguageSummary(repos);
   const accountAge = getAccountAge(profile.created_at);
 
+  const animatedStars = useCountUp(totalStars);
+  const animatedAge = useCountUp(accountAge);
+
   return (
     <div className="grid gap-3 md:grid-cols-3">
-      <StatTile label="Total Stars" value={totalStars.toLocaleString()} index={0} />
+      <StatTile label="Total Stars" value={formatStatValue(animatedStars, totalStars)} triggerValue={totalStars} index={0} />
       <StatTile label="Top Language" value={topLanguage} index={1} />
-      <StatTile label="Account Age" value={`${accountAge} year${accountAge === 1 ? '' : 's'}`} index={2} />
+      <StatTile label="Account Age" value={`${Math.floor(animatedAge)} year${accountAge === 1 ? '' : 's'}`} triggerValue={accountAge} index={2} />
     </div>
   );
 }
