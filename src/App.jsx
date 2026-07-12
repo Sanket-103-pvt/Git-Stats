@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, ArrowUp, GitCompare, LoaderCircle, MoonStar, Search, SunMedium } from 'lucide-react';
+import { AlertCircle, ArrowUp, GitCompare, LoaderCircle, MoonStar, Search, Share2, SunMedium } from 'lucide-react';
 import ProfileCard from './components/ProfileCard';
 import StatsBar from './components/StatsBar';
 import LanguageChart from './components/LanguageChart';
@@ -93,12 +93,49 @@ function App() {
     }
   });
 
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    // Parse URL parameter on initial mount
+    const params = new URLSearchParams(window.location.search);
+    const userParam = params.get('user');
+    if (userParam) {
+      setInputValue(userParam);
+      handleSearch(userParam, '', false);
+    }
+
+    // Listen to popstate event for back/forward navigation
+    function handlePopState() {
+      const currentParams = new URLSearchParams(window.location.search);
+      const currentUser = currentParams.get('user');
+      if (currentUser) {
+        setInputValue(currentUser);
+        handleSearch(currentUser, '', false);
+      } else {
+        setInputValue('');
+        setProfile(null);
+        setRepos([]);
+        setSearchedUsername('');
+        setActivityMap(null);
+        setError(null);
+        document.title = 'GitStats';
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
   const [filterLanguage, setFilterLanguage] = useState('');
   const [sortBy, setSortBy] = useState('stars');
   const [isGridFading, setIsGridFading] = useState(false);
   const [displayRepos, setDisplayRepos] = useState([]);
 
-  const requestIdRef = useRef(0);
 
   useEffect(() => {
     function handleScroll() {
@@ -243,6 +280,7 @@ function App() {
     setEventsLoading(true);
     setFilterLanguage('');
     setSortBy('stars');
+    document.title = 'GitStats';
 
     if (isCompare) {
       setLoading2(true);
@@ -287,6 +325,12 @@ function App() {
         setRepos(res.repos);
         saveToHistory(res.profile.login);
 
+        // Update URL and Title
+        const url = new URL(window.location.href);
+        url.searchParams.set('user', res.profile.login);
+        window.history.pushState({ user: res.profile.login }, '', url.toString());
+        document.title = `${res.profile.login} — GitStats`;
+
         // Fetch public events for the heatmap (up to 3 pages × 100 = 300 events).
         // Events are limited to roughly the last 90 days by GitHub's API.
         try {
@@ -323,6 +367,12 @@ function App() {
         return;
       }
       setError(getErrorMessage(caughtError, username));
+
+      // Remove URL parameter on error
+      const url = new URL(window.location.href);
+      url.searchParams.delete('user');
+      window.history.pushState({}, '', url.toString());
+      document.title = 'GitStats';
     } finally {
       if (requestIdRef.current === requestId) {
         setLoading(false);
@@ -363,6 +413,22 @@ function App() {
     }
   };
 
+  const handleShareLink = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        setToastMessage('Link copied to clipboard!');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
+      })
+      .catch((err) => {
+        console.error('Failed to copy link:', err);
+        setToastMessage('Failed to copy link.');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
+      });
+  };
+
   const showIntro = !loading && !profile && !error && (!compareMode || (!loading2 && !profile2 && !error2));
   const showRepoEmptyState = profile && !loading && repos.length === 0;
   const showLanguageEmptyState = profile && !loading && !hasLanguageData;
@@ -396,6 +462,12 @@ function App() {
                 setRepos2([]);
                 setError(null);
                 setError2(null);
+
+                // Reset URL and Title
+                const url = new URL(window.location.href);
+                url.searchParams.delete('user');
+                window.history.pushState({}, '', url.toString());
+                document.title = 'GitStats';
               }}
               className={`inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border transition ${
                 compareMode
@@ -406,6 +478,17 @@ function App() {
               <GitCompare className="h-4.5 w-4.5" />
               <span className="hidden sm:inline">Compare</span>
             </button>
+
+            {profile && !compareMode && (
+              <button
+                type="button"
+                onClick={handleShareLink}
+                className="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] transition animate-fade-in"
+              >
+                <Share2 className="h-4.5 w-4.5" />
+                <span className="hidden sm:inline">Share</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -634,6 +717,13 @@ function App() {
       >
         <ArrowUp className="h-4.5 w-4.5" />
       </button>
+
+      {/* Reusable Toast Notification */}
+      {showToast && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--gs-text)] shadow-lg animate-fade-in">
+          {toastMessage}
+        </div>
+      )}
     </div>
   );
 }
