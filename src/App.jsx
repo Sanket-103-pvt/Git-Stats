@@ -61,6 +61,7 @@ function App() {
   const [error, setError] = useState(null);
   const [searchedUsername, setSearchedUsername] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [isThemeSpinning, setIsThemeSpinning] = useState(false);
   const requestIdRef = useRef(0);
 
   useEffect(() => {
@@ -197,9 +198,15 @@ function App() {
 
           <button
             type="button"
-            onClick={() => setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))}
+            onClick={() => {
+              setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
+              setIsThemeSpinning(true);
+            }}
+            onAnimationEnd={() => setIsThemeSpinning(false)}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] transition hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)]"
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] transition hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] ${
+              isThemeSpinning ? 'animate-spin-once' : ''
+            }`}
           >
             {theme === 'dark' ? <SunMedium className="h-4.5 w-4.5" /> : <MoonStar className="h-4.5 w-4.5" />}
           </button>
@@ -287,7 +294,7 @@ function App() {
             <div className="mb-3 text-sm font-medium text-[var(--gs-text-secondary)]">Top repositories</div>
             <div className="grid gap-4 lg:grid-cols-2">
               {Array.from({ length: 6 }).map((_, index) => (
-                <RepoCard key={index} loading />
+                <RepoCard key={index} index={index} loading />
               ))}
             </div>
           </section>
@@ -301,8 +308,8 @@ function App() {
               <div className="text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">{topRepos.length} shown</div>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
-              {topRepos.map((repo) => (
-                <RepoCard key={repo.id} repo={repo} />
+              {topRepos.map((repo, index) => (
+                <RepoCard key={repo.id} repo={repo} index={index} />
               ))}
             </div>
           </section>

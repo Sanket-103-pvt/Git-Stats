@@ -1,8 +1,11 @@
 import { GitFork, Star } from 'lucide-react';
 
-function RepoSkeleton() {
+function RepoSkeleton({ index = 0 }) {
   return (
-    <div className="panel p-5 animate-pulse">
+    <div
+      style={{ animationDelay: `${index * 0.05}s` }}
+      className="panel p-5 animate-pulse animate-fade-in-up opacity-0"
+    >
       <div className="h-5 w-2/3 rounded bg-[var(--gs-surface-alt)]" />
       <div className="mt-4 h-4 w-full rounded bg-[var(--gs-surface-alt)]" />
       <div className="mt-2 h-4 w-5/6 rounded bg-[var(--gs-surface-alt)]" />
@@ -14,9 +17,9 @@ function RepoSkeleton() {
   );
 }
 
-function RepoCard({ repo, loading }) {
+function RepoCard({ repo, loading, index = 0 }) {
   if (loading) {
-    return <RepoSkeleton />;
+    return <RepoSkeleton index={index} />;
   }
 
   if (!repo) {
@@ -24,7 +27,10 @@ function RepoCard({ repo, loading }) {
   }
 
   return (
-    <article className="panel p-5 transition duration-200 hover:border-[var(--gs-accent)]/60 hover:bg-[var(--gs-surface-alt)]">
+    <article
+      style={{ animationDelay: `${index * 0.05}s` }}
+      className="panel p-5 transition-all duration-200 hover:border-[var(--gs-accent)]/60 hover:bg-[var(--gs-surface-alt)] hover:-translate-y-[2px] hover:shadow-md animate-fade-in-up opacity-0"
+    >
       <div className="flex items-start justify-between gap-4">
         <a
           href={repo.html_url}
