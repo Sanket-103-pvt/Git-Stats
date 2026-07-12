@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, LoaderCircle, MoonStar, Search, SunMedium } from 'lucide-react';
+import { AlertCircle, ArrowUp, LoaderCircle, MoonStar, Search, SunMedium } from 'lucide-react';
 import ProfileCard from './components/ProfileCard';
 import StatsBar from './components/StatsBar';
 import LanguageChart from './components/LanguageChart';
@@ -60,7 +60,30 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchedUsername, setSearchedUsername] = useState('');
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    function handleScroll() {
+      if (window.scrollY > 300) {
+        setShowBackToTop(true);
+      } else {
+        setShowBackToTop(false);
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  function scrollToTop() {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -303,6 +326,17 @@ function App() {
           </div>
         ) : null}
       </main>
+
+      <button
+        type="button"
+        onClick={scrollToTop}
+        aria-label="Back to top"
+        className={`fixed bottom-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] shadow-md transition-all duration-300 hover:scale-110 hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] ${
+          showBackToTop ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
+        }`}
+      >
+        <ArrowUp className="h-4.5 w-4.5" />
+      </button>
     </div>
   );
 }
