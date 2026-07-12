@@ -16,7 +16,7 @@ function StatBlock({ label, value, loading }) {
 function ProfileCard({ profile, loading }) {
   if (loading) {
     return (
-      <section className="panel p-5 sm:p-6" aria-busy="true">
+      <section className="panel p-5 sm:p-6 animate-fade-in-up opacity-0" aria-busy="true">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
           <div className="flex gap-4">
             <div className="h-20 w-20 shrink-0 rounded-full bg-[var(--gs-surface-alt)] animate-pulse" />
@@ -42,11 +42,11 @@ function ProfileCard({ profile, loading }) {
   }
 
   return (
-    <section className="panel p-5 sm:p-6">
+    <section className="panel p-5 sm:p-6 animate-fade-in-up opacity-0">
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <img
-            className="h-20 w-20 rounded-full border border-[var(--gs-border)] object-cover ring-4 ring-[var(--gs-bg)]"
+            className="h-20 w-20 rounded-full border border-[var(--gs-border)] object-cover ring-4 ring-[var(--gs-bg)] transition-transform duration-300 hover:scale-105"
             src={profile.avatar_url}
             alt={`${profile.login} avatar`}
           />

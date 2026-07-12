@@ -1,18 +1,30 @@
 function StatsSkeleton() {
   return (
     <div className="grid gap-3 md:grid-cols-3" aria-busy="true">
-      <div className="h-16 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] animate-pulse" />
-      <div className="h-16 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] animate-pulse" />
-      <div className="h-16 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] animate-pulse" />
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div
+          key={index}
+          style={{ animationDelay: `${index * 0.05}s` }}
+          className="h-16 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] animate-pulse animate-fade-in opacity-0"
+        />
+      ))}
     </div>
   );
 }
 
-function StatTile({ label, value }) {
+function StatTile({ label, value, index = 0 }) {
   return (
-    <div className="rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] px-4 py-3">
+    <div
+      style={{ animationDelay: `${index * 0.05}s` }}
+      className="rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] px-4 py-3 animate-fade-in opacity-0"
+    >
       <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">{label}</div>
-      <div className="mt-2 text-lg font-semibold text-[var(--gs-text)]">{value}</div>
+      <div
+        key={value}
+        className="mt-2 text-lg font-semibold text-[var(--gs-text)] inline-block animate-count-pulse"
+      >
+        {value}
+      </div>
     </div>
   );
 }
@@ -54,9 +66,9 @@ function StatsBar({ repos, profile, loading }) {
 
   return (
     <div className="grid gap-3 md:grid-cols-3">
-      <StatTile label="Total Stars" value={totalStars.toLocaleString()} />
-      <StatTile label="Top Language" value={topLanguage} />
-      <StatTile label="Account Age" value={`${accountAge} year${accountAge === 1 ? '' : 's'}`} />
+      <StatTile label="Total Stars" value={totalStars.toLocaleString()} index={0} />
+      <StatTile label="Top Language" value={topLanguage} index={1} />
+      <StatTile label="Account Age" value={`${accountAge} year${accountAge === 1 ? '' : 's'}`} index={2} />
     </div>
   );
 }

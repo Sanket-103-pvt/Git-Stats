@@ -62,6 +62,7 @@ function App() {
   const [error, setError] = useState(null);
   const [searchedUsername, setSearchedUsername] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [isThemeSpinning, setIsThemeSpinning] = useState(false);
   
   // Comparison Mode States
   const [compareMode, setCompareMode] = useState(false);
@@ -246,6 +247,20 @@ function App() {
             </div>
           </div>
 
+          <button
+            type="button"
+            onClick={() => {
+              setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
+              setIsThemeSpinning(true);
+            }}
+            onAnimationEnd={() => setIsThemeSpinning(false)}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] transition hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] ${
+              isThemeSpinning ? 'animate-spin-once' : ''
+            }`}
+          >
+            {theme === 'dark' ? <SunMedium className="h-4.5 w-4.5" /> : <MoonStar className="h-4.5 w-4.5" />}
+          </button>
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -366,6 +381,32 @@ function App() {
           </section>
         ) : null}
 
+        {loading || profile ? <ProfileCard profile={profile} loading={loading} /> : null}
+
+        {loading || profile ? <StatsBar repos={repos} profile={profile} loading={loading} /> : null}
+
+        {loading || profile ? <LanguageChart repos={repos} loading={loading} /> : null}
+
+        {showLanguageEmptyState && profile ? (
+          <section className="panel px-5 py-4 text-sm text-[var(--gs-text-secondary)]">Language data unavailable for this account.</section>
+        ) : null}
+
+        {showRepoEmptyState ? (
+          <section className="panel px-5 py-4 text-sm text-[var(--gs-text-secondary)]">No public repositories yet.</section>
+        ) : null}
+
+        {loading ? (
+          <section>
+            <div className="mb-3 text-sm font-medium text-[var(--gs-text-secondary)]">Top repositories</div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <RepoCard key={index} index={index} loading />
+              ))}
+            </div>
+          </section>
+        ) : profile && topRepos.length > 0 ? (
+          <section>
+            <div className="mb-3 flex items-end justify-between gap-3">
         {compareMode && error2 ? (
           <section className="rounded-lg border border-[var(--gs-error)] bg-[var(--gs-surface-alt)] px-5 py-4 text-[var(--gs-text)]">
             <div className="flex items-start gap-3">
@@ -375,6 +416,12 @@ function App() {
                 <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">{error2}</p>
                 {searchedUsername2 ? <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">Query: {searchedUsername2}</p> : null}
               </div>
+              <div className="text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">{topRepos.length} shown</div>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {topRepos.map((repo, index) => (
+                <RepoCard key={repo.id} repo={repo} index={index} />
+              ))}
             </div>
           </section>
         ) : null}
