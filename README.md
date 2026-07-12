@@ -10,17 +10,6 @@ GitHub Profile Analyzer - explore any public GitHub account without leaving the 
 [![GitHub API](https://img.shields.io/badge/GitHub-REST%20API%20v3-181717?style=flat-square&logo=github)](https://docs.github.com/en/rest)
 [![License MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 [![ELUSoC 2026](https://img.shields.io/badge/ELUSoC-2026-purple?style=flat-square)](https://edulinkup.dev/elusoc)
-
-## Screenshots
-
-**Profile Stats**
-
-![GitStats Profile Stats](public/images/screenshot-stats.png)
-
-**Top Repositories**
-
-![GitStats Top Repositories](public/images/screenshot-repos.png)
-
 ## Features
 
 - GitHub profile search with real-time data from the GitHub REST API
