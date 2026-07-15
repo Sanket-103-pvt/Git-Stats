@@ -1,14 +1,10 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
+import { getLanguageCounts } from '../lib/repoStats';
 
 const COLORS = ['#58A6FF', '#3FB950', '#F0883E', '#A371F7', '#D29922', '#F85149', '#7EE787', '#79C0FF'];
 
 function buildLanguageData(repos) {
-  const counts = repos.reduce((accumulator, repo) => {
-    if (repo.language) {
-      accumulator[repo.language] = (accumulator[repo.language] || 0) + 1;
-    }
-    return accumulator;
-  }, {});
+  const counts = getLanguageCounts(repos);
 
   const entries = Object.entries(counts).sort((left, right) => right[1] - left[1]);
   const total = entries.reduce((sum, [, value]) => sum + value, 0);

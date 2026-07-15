@@ -1,5 +1,5 @@
 import { Lock } from 'lucide-react';
-import { getAccountAge } from './StatsBar';
+import { getAccountAgeYears } from '../lib/repoStats';
 
 function AchievementsSkeleton() {
   return (
@@ -30,7 +30,7 @@ export default function AchievementBadges({ profile, repos, loading }) {
 
   const totalStars = repos.reduce((sum, repo) => sum + (repo.stargazers_count || 0), 0);
   const uniqueLanguages = new Set(repos.map((repo) => repo.language).filter(Boolean)).size;
-  const accountAge = getAccountAge(profile.created_at);
+  const accountAge = getAccountAgeYears(profile.created_at);
   const forkedRepos = repos.filter((repo) => repo.fork).length;
 
   const badges = [
