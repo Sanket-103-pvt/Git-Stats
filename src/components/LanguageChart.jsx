@@ -46,6 +46,14 @@ function LanguageChart({ repos, loading }) {
   }
 
   const { total, data } = buildLanguageData(repos);
+  const topLanguage = data[0];
+
+const chartLabel = topLanguage
+  ? `Language breakdown pie chart. ${topLanguage.name} is the most common language at ${(
+      (topLanguage.value / total) *
+      100
+    ).toFixed(1)} percent.`
+  : 'Language breakdown pie chart.';
 
   if (!total) {
     return null;
@@ -62,7 +70,12 @@ function LanguageChart({ repos, loading }) {
       </div>
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[280px_1fr] lg:items-center">
-        <div className="h-[260px] w-full">
+        <div
+  className="h-[260px] w-full"
+  role="img"
+  aria-label={chartLabel}
+  aria-describedby="language-chart-legend"
+>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -85,7 +98,10 @@ function LanguageChart({ repos, loading }) {
           </ResponsiveContainer>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+         <div
+  id="language-chart-legend"
+  className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2"
+>
           {data.map((entry, index) => {
             const percent = ((entry.value / total) * 100).toFixed(1);
 
