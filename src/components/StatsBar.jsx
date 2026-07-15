@@ -33,6 +33,16 @@ function StatTile({ label, value, triggerValue, index = 0 }) {
 }
 
 function StatsBar({ repos, profile, loading }) {
+  // Hooks must run unconditionally, so the derived values they consume are computed first with
+  // null-safe fallbacks, and the hooks sit above the early returns. When profile/repos aren't ready
+  // these resolve to 0, which is harmless because the component returns before rendering them.
+  const totalStars = (repos || []).reduce((sum, repo) => sum + (repo.stargazers_count || 0), 0);
+  const topLanguage = getTopLanguage(repos || []);
+  const accountAge = getAccountAgeYears(profile?.created_at);
+
+  const animatedStars = useCountUp(totalStars);
+  const animatedAge = useCountUp(accountAge);
+
   if (loading) {
     return <StatsSkeleton />;
   }
@@ -40,13 +50,6 @@ function StatsBar({ repos, profile, loading }) {
   if (!profile) {
     return null;
   }
-
-  const totalStars = repos.reduce((sum, repo) => sum + (repo.stargazers_count || 0), 0);
-  const topLanguage = getTopLanguage(repos);
-  const accountAge = getAccountAgeYears(profile.created_at);
-
-  const animatedStars = useCountUp(totalStars);
-  const animatedAge = useCountUp(accountAge);
 
   return (
     <div className="grid gap-3 md:grid-cols-3">

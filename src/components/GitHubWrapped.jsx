@@ -17,6 +17,9 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, onCopyS
       stopAutoAdvance();
     }
     return () => stopAutoAdvance();
+    // Auto-advance is driven by open/closed state only; startAutoAdvance/stopAutoAdvance are stable
+    // helpers defined below, intentionally excluded to keep this effect keyed on isOpen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const startAutoAdvance = () => {

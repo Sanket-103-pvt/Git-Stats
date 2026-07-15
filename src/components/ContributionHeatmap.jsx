@@ -43,7 +43,7 @@ function formatTooltipDate(dateStr) {
   return `${MONTH_NAMES[m - 1]} ${d}, ${y}`;
 }
 
-function ContributionHeatmap({ activityMap, loading, username }) {
+function ContributionHeatmap({ activityMap, loading }) {
   const [tooltip, setTooltip] = useState(null); // { text, x, y }
 
   // Build the ordered list of 364 date strings ending today.
