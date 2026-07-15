@@ -1,4 +1,5 @@
 import useCountUp, { formatStatValue } from '../hooks/useCountUp';
+import { getAccountAgeYears, getTopLanguage } from '../lib/repoStats';
 
 function StatsSkeleton() {
   return (
@@ -31,28 +32,6 @@ function StatTile({ label, value, triggerValue, index = 0 }) {
   );
 }
 
-export function getAccountAge(createdAt) {
-  if (!createdAt) {
-    return 0;
-  }
-
-  const started = new Date(createdAt).getTime();
-  const years = (Date.now() - started) / (1000 * 60 * 60 * 24 * 365.25);
-  return Math.max(0, Math.floor(years));
-}
-
-export function getLanguageSummary(repos) {
-  const counts = repos.reduce((accumulator, repo) => {
-    if (repo.language) {
-      accumulator[repo.language] = (accumulator[repo.language] || 0) + 1;
-    }
-    return accumulator;
-  }, {});
-
-  const topLanguage = Object.entries(counts).sort((left, right) => right[1] - left[1])[0]?.[0] || 'N/A';
-  return topLanguage;
-}
-
 function StatsBar({ repos, profile, loading }) {
   if (loading) {
     return <StatsSkeleton />;
@@ -63,8 +42,8 @@ function StatsBar({ repos, profile, loading }) {
   }
 
   const totalStars = repos.reduce((sum, repo) => sum + (repo.stargazers_count || 0), 0);
-  const topLanguage = getLanguageSummary(repos);
-  const accountAge = getAccountAge(profile.created_at);
+  const topLanguage = getTopLanguage(repos);
+  const accountAge = getAccountAgeYears(profile.created_at);
 
   const animatedStars = useCountUp(totalStars);
   const animatedAge = useCountUp(accountAge);

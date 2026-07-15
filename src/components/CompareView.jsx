@@ -1,5 +1,5 @@
 import ProfileCard from './ProfileCard';
-import { getAccountAge, getLanguageSummary } from './StatsBar';
+import { getAccountAgeYears, getTopLanguage } from '../lib/repoStats';
 
 function getStars(repos) {
   return repos.reduce((sum, repo) => sum + (repo.stargazers_count || 0), 0);
@@ -8,13 +8,13 @@ function getStars(repos) {
 function CompareView({ profile1, repos1, loading1, profile2, repos2, loading2 }) {
   // 1. Calculate values for User 1
   const stars1 = profile1 ? getStars(repos1) : 0;
-  const lang1 = profile1 ? getLanguageSummary(repos1) : 'N/A';
-  const age1 = profile1 ? getAccountAge(profile1.created_at) : 0;
+  const lang1 = profile1 ? getTopLanguage(repos1) : 'N/A';
+  const age1 = profile1 ? getAccountAgeYears(profile1.created_at) : 0;
 
   // 2. Calculate values for User 2
   const stars2 = profile2 ? getStars(repos2) : 0;
-  const lang2 = profile2 ? getLanguageSummary(repos2) : 'N/A';
-  const age2 = profile2 ? getAccountAge(profile2.created_at) : 0;
+  const lang2 = profile2 ? getTopLanguage(repos2) : 'N/A';
+  const age2 = profile2 ? getAccountAgeYears(profile2.created_at) : 0;
 
   // 3. Define metrics to compare
   const metrics = [

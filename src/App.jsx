@@ -11,6 +11,7 @@ import ActivityInsights from './components/ActivityInsights';
 import GitHubWrapped from './components/GitHubWrapped';
 import ContributionHeatmap from './components/ContributionHeatmap';
 import SearchHistory from './components/SearchHistory';
+import { getAccountAgeYears } from './lib/repoStats';
 
 const THEME_KEY = 'gitstats-theme';
 const HISTORY_KEY = 'gitstats-history';
@@ -24,14 +25,37 @@ function getInitialTheme() {
   return storedTheme === 'light' ? 'light' : 'dark';
 }
 
+// A request that never resolves — a stalled network, say — would otherwise leave the loading
+// spinner up forever with no way to recover but a page reload. AbortController with a timeout turns
+// that into a normal, recoverable error.
+const REQUEST_TIMEOUT_MS = 12000;
+
 async function fetchGitHubJson(url) {
   const token = import.meta.env.VITE_GITHUB_TOKEN;
-  const response = await fetch(url, {
-    headers: {
-      Accept: 'application/vnd.github+json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      signal: controller.signal,
+    });
+  } catch (fetchError) {
+    // AbortController surfaces the timeout as an AbortError; anything else is a genuine network
+    // failure. Flag the timeout so the caller can show a message that tells the user to retry.
+    if (fetchError.name === 'AbortError') {
+      const timeoutError = new Error('GitHub request timed out');
+      timeoutError.isTimeout = true;
+      throw timeoutError;
+    }
+    throw fetchError;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (response.ok) {
     return response.json();
@@ -40,6 +64,11 @@ async function fetchGitHubJson(url) {
   const error = new Error('GitHub request failed');
   error.status = response.status;
   error.body = await response.json().catch(() => null);
+  // GitHub reports rate-limit state in headers. Capture them so the caller can tell a real rate
+  // limit (remaining === 0) from other 403s, and can show the actual reset time instead of a guess.
+  error.rateLimitRemaining = response.headers.get('x-ratelimit-remaining');
+  error.rateLimitReset = response.headers.get('x-ratelimit-reset');
+  error.retryAfter = response.headers.get('retry-after');
   throw error;
 }
 
@@ -52,12 +81,6 @@ function reposPageUrl(username, page) {
   return `https://api.github.com/users/${encodeURIComponent(
     username
   )}/repos?per_page=100&sort=updated&page=${page}`;
-}
-
-function formatRelativeYears(createdAt) {
-  const start = new Date(createdAt).getTime();
-  const years = Math.floor((Date.now() - start) / (1000 * 60 * 60 * 24 * 365.25));
-  return Math.max(0, years);
 }
 
 function App() {
@@ -247,14 +270,49 @@ function App() {
     });
   };
 
+  // Turns an x-ratelimit-reset (Unix seconds) or Retry-After (seconds) into a short human phrase.
+  function formatRetryHint(caughtError) {
+    const retryAfter = caughtError.retryAfter;
+    const reset = caughtError.rateLimitReset;
+
+    let msUntilRetry = null;
+    if (retryAfter && !Number.isNaN(Number(retryAfter))) {
+      msUntilRetry = Number(retryAfter) * 1000;
+    } else if (reset && !Number.isNaN(Number(reset))) {
+      msUntilRetry = Number(reset) * 1000 - Date.now();
+    }
+
+    if (msUntilRetry === null || msUntilRetry <= 0) {
+      return 'Try again shortly.';
+    }
+
+    const minutes = Math.ceil(msUntilRetry / 60000);
+    if (minutes < 60) {
+      return `Try again in about ${minutes} minute${minutes === 1 ? '' : 's'}.`;
+    }
+    const hours = Math.ceil(minutes / 60);
+    return `Try again in about ${hours} hour${hours === 1 ? '' : 's'}.`;
+  }
+
   function getErrorMessage(caughtError, username) {
+    if (caughtError.isTimeout) {
+      return 'Request timed out. Check your connection and try again.';
+    }
     if (caughtError.status === 404) {
       return `User "${username}" not found. Check spelling.`;
-    } else if (caughtError.status === 403) {
-      return 'GitHub API rate limit reached. Try again in about an hour.';
-    } else {
-      return 'Network error. Check your connection and try again.';
     }
+    if (caughtError.status === 403) {
+      // 403 covers more than rate limiting. A real rate limit reports remaining === "0"; other 403s
+      // (secondary limits, blocked requests) shouldn't claim the primary limit was hit.
+      if (caughtError.rateLimitRemaining === '0') {
+        return `GitHub API rate limit reached. ${formatRetryHint(caughtError)}`;
+      }
+      if (caughtError.retryAfter) {
+        return `GitHub temporarily blocked this request (secondary rate limit). ${formatRetryHint(caughtError)}`;
+      }
+      return 'GitHub denied this request (403). If this persists, add a VITE_GITHUB_TOKEN to raise the rate limit.';
+    }
+    return 'Network error. Check your connection and try again.';
   }
 
   async function handleSearch(
@@ -728,7 +786,7 @@ function App() {
 
         {profile && !compareMode ? (
           <div className="pb-2 text-right text-[11px] uppercase tracking-[0.2em] text-[var(--gs-text-secondary)]">
-            Account age: {formatRelativeYears(profile.created_at)} years
+            Account age: {getAccountAgeYears(profile.created_at)} years
           </div>
         ) : null}
       </main>
