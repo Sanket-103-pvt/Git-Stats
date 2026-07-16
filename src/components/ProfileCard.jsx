@@ -1,4 +1,4 @@
-import { ExternalLink, MapPin } from 'lucide-react';
+import { Building, ExternalLink, MapPin } from 'lucide-react';
 import useCountUp, { formatStatValue } from '../hooks/useCountUp';
 
 function StatBlock({ label, value, loading }) {
@@ -71,8 +71,16 @@ function ProfileCard({ profile, loading }) {
               </a>
               <div className="mt-1 text-sm text-[var(--gs-text-secondary)]">@{profile.login}</div>
             </div>
-            {profile.bio ? <p className="max-w-2xl text-sm leading-6 text-[var(--gs-text-secondary)]">{profile.bio}</p> : null}
+            {profile.bio && profile.bio.trim() !== '' ? (
+              <p className="max-w-2xl text-sm leading-6 text-[var(--gs-text-secondary)]">{profile.bio}</p>
+            ) : null}
             <div className="flex flex-wrap gap-2 text-xs text-[var(--gs-text-secondary)]">
+              {profile.company && profile.company.trim() !== '' ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-3 py-1">
+                  <Building className="h-3.5 w-3.5" />
+                  {profile.company}
+                </span>
+              ) : null}
               {profile.location ? (
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.location)}`}
