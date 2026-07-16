@@ -74,10 +74,15 @@ function ProfileCard({ profile, loading }) {
             {profile.bio ? <p className="max-w-2xl text-sm leading-6 text-[var(--gs-text-secondary)]">{profile.bio}</p> : null}
             <div className="flex flex-wrap gap-2 text-xs text-[var(--gs-text-secondary)]">
               {profile.location ? (
-                <span className="inline-flex items-center gap-1 rounded-full border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-3 py-1">
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.location)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-3 py-1 transition hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)]"
+                >
                   <MapPin className="h-3.5 w-3.5" />
                   {profile.location}
-                </span>
+                </a>
               ) : null}
               <span className="rounded-full border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-3 py-1">
                 Joined {new Date(profile.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
