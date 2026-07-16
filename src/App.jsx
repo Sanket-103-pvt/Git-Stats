@@ -31,17 +31,27 @@ function getInitialTheme() {
 const REQUEST_TIMEOUT_MS = 12000;
 
 async function fetchGitHubJson(url) {
-  const token = import.meta.env.VITE_GITHUB_TOKEN;
+  let token = '';
+  try {
+    token = import.meta.env && import.meta.env.VITE_GITHUB_TOKEN;
+  } catch {
+    // Ignore env read errors to prevent runtime crash
+  }
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   let response;
   try {
+    const headers = {
+      Accept: 'application/vnd.github+json',
+    };
+    if (token && typeof token === 'string' && token.trim() !== '') {
+      headers['Authorization'] = `Bearer ${token.trim()}`;
+    }
+
     response = await fetch(url, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
+      headers,
       signal: controller.signal,
     });
   } catch (fetchError) {
