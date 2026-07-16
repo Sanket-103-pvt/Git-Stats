@@ -462,6 +462,9 @@ function App() {
 
   function handleSubmit(event) {
     event.preventDefault();
+    if (!inputValue.trim()) {
+      return;
+    }
     handleSearch();
   }
 
