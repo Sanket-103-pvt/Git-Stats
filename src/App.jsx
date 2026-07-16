@@ -273,11 +273,11 @@ function App() {
     if (!username) return;
     setSearchHistory((prev) => {
       const filtered = prev.filter((name) => name.toLowerCase() !== username.toLowerCase());
-      const updated = [username, ...filtered].slice(0, 5);
+      const updated = [username, ...filtered].slice(0, 10);
       try {
         window.localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
-      } catch (err) {
-        console.error('Failed to save search history', err);
+      } catch {
+        // Ignore localStorage save failures
       }
       return updated;
     });
