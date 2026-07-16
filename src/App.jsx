@@ -156,6 +156,9 @@ function App() {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
+    // Registers the popstate listener once on mount; handleSearch is intentionally omitted so the
+    // listener isn't torn down and re-added on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [filterLanguage, setFilterLanguage] = useState('');

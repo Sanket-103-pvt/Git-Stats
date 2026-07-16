@@ -15,6 +15,13 @@ function StatBlock({ label, value, loading }) {
 }
 
 function ProfileCard({ profile, loading }) {
+  // Hooks must run on every render, so they sit above every early return (loading and !profile
+  // below). useCountUp coerces its argument with Number(x) || 0, so passing undefined while the
+  // profile is still loading is safe — the component returns before these values are shown.
+  const animatedFollowers = useCountUp(profile?.followers);
+  const animatedFollowing = useCountUp(profile?.following);
+  const animatedRepos = useCountUp(profile?.public_repos);
+
   if (loading) {
     return (
       <section className="panel p-5 sm:p-6 animate-fade-in-up opacity-0" aria-busy="true">
@@ -41,10 +48,6 @@ function ProfileCard({ profile, loading }) {
   if (!profile) {
     return null;
   }
-
-  const animatedFollowers = useCountUp(profile.followers);
-  const animatedFollowing = useCountUp(profile.following);
-  const animatedRepos = useCountUp(profile.public_repos);
 
   return (
     <section className="panel p-5 sm:p-6 animate-fade-in-up opacity-0">
