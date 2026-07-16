@@ -648,6 +648,7 @@ function App() {
 
               <SearchHistory
                 searchHistory={searchHistory}
+                searchedUsername={searchedUsername}
                 onSelectHistory={handleSelectHistory}
                 onRemoveHistory={handleRemoveHistory}
                 onClearHistory={handleClearHistory}

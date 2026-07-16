@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 
 export default function SearchHistory({
   searchHistory,
+  searchedUsername,
   onSelectHistory,
   onRemoveHistory,
   onClearHistory,
@@ -14,16 +15,24 @@ export default function SearchHistory({
     <div className="flex flex-wrap items-center gap-2 px-1 text-xs animate-fade-in">
       <span className="text-[var(--gs-text-secondary)] font-medium">Recent:</span>
       <div className="flex flex-wrap items-center gap-2">
-        {searchHistory.map((username) => (
-          <div
-            key={username}
-            className="group inline-flex items-center gap-1.5 rounded-full border border-[var(--gs-border)] bg-[var(--gs-surface)] pl-1.5 pr-2 py-0.5 transition hover:border-[var(--gs-accent)]/55 hover:bg-[var(--gs-surface-alt)] animate-fade-in"
-          >
-            <button
-              type="button"
-              onClick={() => onSelectHistory(username)}
-              className="inline-flex items-center gap-1 font-semibold text-[var(--gs-text)] outline-none hover:text-[var(--gs-accent)]"
+        {searchHistory.map((username) => {
+          const isActive = searchedUsername && username.toLowerCase() === searchedUsername.toLowerCase();
+          return (
+            <div
+              key={username}
+              className={`group inline-flex items-center gap-1.5 rounded-full border pl-1.5 pr-2 py-0.5 transition animate-fade-in ${
+                isActive
+                  ? 'border-[var(--gs-accent)] bg-[var(--gs-accent)]/10 shadow-sm'
+                  : 'border-[var(--gs-border)] bg-[var(--gs-surface)] hover:border-[var(--gs-accent)]/55 hover:bg-[var(--gs-surface-alt)]'
+              }`}
             >
+              <button
+                type="button"
+                onClick={() => onSelectHistory(username)}
+                className={`inline-flex items-center gap-1 font-semibold outline-none transition-colors ${
+                  isActive ? 'text-[var(--gs-accent)]' : 'text-[var(--gs-text)] hover:text-[var(--gs-accent)]'
+                }`}
+              >
               <img
                 src={`https://github.com/${username}.png`}
                 alt={`${username}'s avatar`}
@@ -43,7 +52,8 @@ export default function SearchHistory({
               <X className="h-3 w-3" />
             </button>
           </div>
-        ))}
+        );
+      })}
         <button
           type="button"
           onClick={onClearHistory}
