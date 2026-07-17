@@ -4,10 +4,10 @@ import { X, Download, Link, ChevronLeft, ChevronRight, Sparkles } from 'lucide-r
 import html2canvas from 'html2canvas';
 import useWrappedStats from '../hooks/useWrappedStats';
 
-export default function GitHubWrapped({ profile, repos, eventTimestamps, onCopyShareLink }) {
+export default function GitHubWrapped({ profile, repos, eventTimestamps, activityMap, onCopyShareLink }) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const stats = useWrappedStats(profile, repos, eventTimestamps);
+  const stats = useWrappedStats(profile, repos, eventTimestamps, activityMap);
   const slideTimerRef = useRef(null);
 
   useEffect(() => {

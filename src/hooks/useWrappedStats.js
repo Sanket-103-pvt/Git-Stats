@@ -5,7 +5,7 @@ const monthNames = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-export default function useWrappedStats(profile, repos, events) {
+export default function useWrappedStats(profile, repos, events, activityMap) {
   return useMemo(() => {
     if (!profile || !repos || !events) {
       return null;
@@ -29,34 +29,25 @@ export default function useWrappedStats(profile, repos, events) {
       return (repo.stargazers_count || 0) > (max?.stargazers_count || 0) ? repo : max;
     }, null);
 
-    // 4. peakActivityMonth (month index with highest event frequency)
-    const monthCounts = Array(12).fill(0);
-    const hourCounts = Array(24).fill(0);
-    events.forEach((ts) => {
+    // 4. peakActivityMonth
+    const monthCounts = events.reduce((acc, ts) => {
       const d = new Date(ts);
-      monthCounts[d.getMonth()]++;
-      hourCounts[d.getHours()]++;
-    });
+      const m = d.getMonth();
+      acc[m] = (acc[m] || 0) + 1;
+      return acc;
+    }, {});
+    const sortedMonths = Object.entries(monthCounts).sort((a, b) => b[1] - a[1]);
+    const peakActivityMonth = sortedMonths[0] ? monthNames[Number(sortedMonths[0][0])] : 'July';
 
-    let maxMonthIdx = 0;
-    let maxMonthCount = 0;
-    monthCounts.forEach((cnt, idx) => {
-      if (cnt > maxMonthCount) {
-        maxMonthCount = cnt;
-        maxMonthIdx = idx;
-      }
-    });
-    const peakActivityMonth = monthNames[maxMonthIdx];
-
-    // 5. coderPersonality (peak hour categories)
-    let maxHour = 12;
-    let maxHourCount = 0;
-    hourCounts.forEach((cnt, hr) => {
-      if (cnt > maxHourCount) {
-        maxHour = hr;
-        maxHourCount = cnt;
-      }
-    });
+    // 5. coderPersonality
+    const hourCounts = events.reduce((acc, ts) => {
+      const d = new Date(ts);
+      const h = d.getHours();
+      acc[h] = (acc[h] || 0) + 1;
+      return acc;
+    }, {});
+    const sortedHours = Object.entries(hourCounts).sort((a, b) => b[1] - a[1]);
+    const maxHour = sortedHours[0] ? Number(sortedHours[0][0]) : 12;
 
     let coderPersonality = 'The Open Source Champion 🏆';
     if (maxHour >= 0 && maxHour < 4) {
@@ -71,11 +62,18 @@ export default function useWrappedStats(profile, repos, events) {
       coderPersonality = 'The Evening Hacker 🌙';
     }
 
-    // 6. longestStreak (consecutive active days calculated from timestamps)
-    const uniqueDates = Array.from(new Set(events.map((ts) => {
-      const d = new Date(ts);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }))).sort();
+    // 6. longestStreak (consecutive active days calculated from activityMap or timestamps)
+    let uniqueDates = [];
+    if (activityMap && Object.keys(activityMap).length > 0) {
+      uniqueDates = Object.keys(activityMap)
+        .filter((dateStr) => activityMap[dateStr] > 0)
+        .sort();
+    } else {
+      uniqueDates = Array.from(new Set(events.map((ts) => {
+        const d = new Date(ts);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }))).sort();
+    }
 
     let currentStreak = 0;
     let longestStreak = 0;
@@ -107,5 +105,5 @@ export default function useWrappedStats(profile, repos, events) {
       coderPersonality,
       longestStreak,
     };
-  }, [profile, repos, events]);
+  }, [profile, repos, events, activityMap]);
 }
