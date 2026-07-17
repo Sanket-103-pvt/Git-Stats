@@ -607,6 +607,7 @@ function App() {
                   profile={profile}
                   repos={repos}
                   eventTimestamps={eventTimestamps}
+                  activityMap={activityMap}
                   onCopyShareLink={handleShareLink}
                 />
               </div>
