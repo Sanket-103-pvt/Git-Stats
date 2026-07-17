@@ -123,7 +123,7 @@ function ContributionHeatmap({ activityMap, loading }) {
         <div>
           <h2 className="text-lg font-semibold text-[var(--gs-text)]">Activity Heatmap</h2>
           <p className="mt-0.5 text-xs text-[var(--gs-text-secondary)]">
-            Based on public events API · ~last 90 days of data · not identical to GitHub's contribution graph
+            Based on GitHub contribution calendar · fallback to public events if unavailable
           </p>
         </div>
         <div className="flex items-center gap-4 text-xs text-[var(--gs-text-secondary)]">
