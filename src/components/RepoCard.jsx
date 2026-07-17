@@ -76,13 +76,20 @@ function RepoCard({ repo, loading, index = 0 }) {
         >
           {repo.name}
         </a>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-2.5 py-1 text-[11px] font-medium text-[var(--gs-text)]">
-          <span
-            className="h-2 w-2 rounded-full"
-            style={{ backgroundColor: getLanguageColor(repo.language) }}
-          />
-          {repo.language || 'Unknown'}
-        </span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {repo.license ? (
+            <span className="inline-flex items-center rounded-full border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-2 py-0.5 text-[10px] font-semibold text-[var(--gs-text-secondary)] uppercase tracking-wider">
+              {repo.license.spdx_id || repo.license.name}
+            </span>
+          ) : null}
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-2.5 py-1 text-[11px] font-medium text-[var(--gs-text)]">
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: getLanguageColor(repo.language) }}
+            />
+            {repo.language || 'Unknown'}
+          </span>
+        </div>
       </div>
 
       <p className="mt-3 min-h-[3rem] text-sm leading-6 text-[var(--gs-text-secondary)] line-clamp-3">
