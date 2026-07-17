@@ -723,7 +723,14 @@ function App() {
 
             {loading || profile ? <StatsBar repos={repos} profile={profile} loading={loading} /> : null}
 
-            {loading || profile ? <AchievementBadges repos={repos} profile={profile} loading={loading} /> : null}
+            {loading || profile ? (
+              <AchievementBadges
+                repos={repos}
+                profile={profile}
+                eventTimestamps={eventTimestamps}
+                loading={loading}
+              />
+            ) : null}
 
             {/* Contribution heatmap — shown only in single-profile mode */}
             {loading || profile ? (

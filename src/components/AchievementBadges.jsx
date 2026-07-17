@@ -9,7 +9,7 @@ function AchievementsSkeleton() {
         <div className="h-4 w-64 rounded bg-[var(--gs-surface-alt)] animate-pulse" />
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, index) => (
+        {Array.from({ length: 12 }).map((_, index) => (
           <div
             key={index}
             style={{ animationDelay: `${index * 0.05}s` }}
@@ -21,7 +21,7 @@ function AchievementsSkeleton() {
   );
 }
 
-export default function AchievementBadges({ profile, repos, loading }) {
+export default function AchievementBadges({ profile, repos, eventTimestamps, loading }) {
   if (loading) {
     return <AchievementsSkeleton />;
   }
@@ -32,6 +32,11 @@ export default function AchievementBadges({ profile, repos, loading }) {
   const uniqueLanguages = new Set(repos.map((repo) => repo.language).filter(Boolean)).size;
   const accountAge = getAccountAgeYears(profile.created_at);
   const forkedRepos = repos.filter((repo) => repo.fork).length;
+
+  const hasNightCommits = eventTimestamps && eventTimestamps.some((timestamp) => {
+    const hour = new Date(timestamp).getHours();
+    return hour >= 23 || hour < 5;
+  });
 
   const badges = [
     {
@@ -86,9 +91,9 @@ export default function AchievementBadges({ profile, repos, loading }) {
       id: 'owl',
       name: 'Night Owl',
       emoji: '🦉',
-      earned: false,
-      description: 'N/A',
-      requirement: 'Commit code during late night hours.',
+      earned: !!hasNightCommits,
+      description: 'Committed code during late night hours (11 PM - 5 AM).',
+      requirement: 'Commit code during late night hours (11 PM - 5 AM).',
     },
     {
       id: 'explorer',
@@ -97,6 +102,54 @@ export default function AchievementBadges({ profile, repos, loading }) {
       earned: !!profile.location,
       description: 'Added a location to profile.',
       requirement: 'Add location to profile.',
+    },
+    {
+      id: 'gist',
+      name: 'Gist Master',
+      emoji: '📝',
+      earned: profile.public_gists >= 1,
+      description: 'Created 1 or more public Gists.',
+      requirement: 'Create at least 1 public Gist.',
+    },
+    {
+      id: 'global',
+      name: 'Global Citizen',
+      emoji: '🌍',
+      earned: !!(profile.blog?.trim() || profile.twitter_username?.trim()),
+      description: 'Linked a website or Twitter username.',
+      requirement: 'Add a website/portfolio link or Twitter username.',
+    },
+    {
+      id: 'starry_night',
+      name: 'Starry Night',
+      emoji: '✨',
+      earned: repos.some((repo) => repo.stargazers_count >= 10),
+      description: 'Has a repository with 10+ stars.',
+      requirement: 'Get 10+ stars on any single repository.',
+    },
+    {
+      id: 'builder',
+      name: 'Dedicated Builder',
+      emoji: '🛠️',
+      earned: profile.public_repos >= 20,
+      description: 'Published 20+ public repositories.',
+      requirement: 'Publish 20+ public repositories.',
+    },
+    {
+      id: 'catalyst',
+      name: 'Collab Catalyst',
+      emoji: '⚡',
+      earned: forkedRepos >= 5,
+      description: 'Forked 5+ public repositories.',
+      requirement: 'Fork 5+ public repositories.',
+    },
+    {
+      id: 'wiki',
+      name: 'Wiki Contributor',
+      emoji: '📖',
+      earned: repos.some((repo) => repo.has_wiki),
+      description: 'Has a repository with wiki enabled.',
+      requirement: 'Enable wiki on any of your repositories.',
     },
   ];
 
