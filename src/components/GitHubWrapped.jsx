@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Download, Link, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import useWrappedStats from '../hooks/useWrappedStats';
@@ -302,14 +303,14 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, onCopyS
         <span>Wrapped 🎁</span>
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div
           onClick={() => {
             if (currentSlide < 5) {
               setCurrentSlide(currentSlide + 1);
             }
           }}
-          className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br ${slides[currentSlide].bg} transition-colors duration-700 select-none cursor-pointer`}
+          className={`fixed inset-0 z-[9999] flex flex-col items-center justify-start sm:justify-center overflow-y-auto bg-gradient-to-br ${slides[currentSlide].bg} transition-colors duration-700 select-none cursor-pointer py-16 px-4`}
         >
           <div className="absolute top-6 inset-x-6 flex items-center justify-between text-white z-50">
             <div className="flex-1 flex gap-1.5 mr-6">
@@ -367,7 +368,8 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, onCopyS
           <div className="w-full flex justify-center py-12">
             {slides[currentSlide].content}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
