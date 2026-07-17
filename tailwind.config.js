@@ -4,6 +4,9 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      spacing: {
+        4.5: '1.125rem',
+      },
       boxShadow: {
         soft: '0 20px 50px rgba(0, 0, 0, 0.12)',
       },
