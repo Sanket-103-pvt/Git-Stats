@@ -9,6 +9,7 @@ import RepoFilters from './components/RepoFilters';
 import AchievementBadges from './components/AchievementBadges';
 import ActivityInsights from './components/ActivityInsights';
 import GitHubWrapped from './components/GitHubWrapped';
+import PlayerCardModal from './components/PlayerCardModal';
 import ContributionHeatmap from './components/ContributionHeatmap';
 import SearchHistory from './components/SearchHistory';
 import { getAccountAgeYears } from './lib/repoStats';
@@ -609,6 +610,12 @@ function App() {
                   eventTimestamps={eventTimestamps}
                   activityMap={activityMap}
                   onCopyShareLink={handleShareLink}
+                />
+
+                <PlayerCardModal
+                  profile={profile}
+                  repos={repos}
+                  activityMap={activityMap}
                 />
               </div>
             )}
