@@ -407,8 +407,8 @@ function App() {
         window.history.pushState({ user: res.profile.login }, '', url.toString());
         document.title = `${res.profile.login} — GitStats`;
 
-        // Fetch public events for the heatmap (up to 3 pages × 100 = 300 events).
-        // Events are limited to roughly the last 90 days by GitHub's API.
+        // Fetch public events for achievements & wrapped, and fetch full contribution calendar for the heatmap.
+        let eventsMap = {};
         try {
           const eventPages = await Promise.all([
             fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100&page=1`),
@@ -416,29 +416,60 @@ function App() {
             fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100&page=3`),
           ]);
 
+          if (requestIdRef.current === requestId) {
+            const allEvents = eventPages.flat();
+            const timestamps = [];
+            for (const evt of allEvents) {
+              if (!evt.created_at) continue;
+              timestamps.push(evt.created_at);
+              // Convert the UTC timestamp to a local YYYY-MM-DD key.
+              const localDate = new Date(evt.created_at);
+              const y = localDate.getFullYear();
+              const m = String(localDate.getMonth() + 1).padStart(2, '0');
+              const d = String(localDate.getDate()).padStart(2, '0');
+              const key = `${y}-${m}-${d}`;
+              eventsMap[key] = (eventsMap[key] || 0) + 1;
+            }
+            setEventTimestamps(timestamps);
+          }
+        } catch {
+          // Ignore event fetch failure
+        }
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
+          const res = await fetch(`https://github-contributions.vercel.app/api/v1/${encodeURIComponent(username)}`, {
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+
           if (requestIdRef.current !== requestId) return;
 
-          const allEvents = eventPages.flat();
-          const map = {};
-          const timestamps = [];
-          for (const evt of allEvents) {
-            if (!evt.created_at) continue;
-            timestamps.push(evt.created_at);
-            // Convert the UTC timestamp to a local YYYY-MM-DD key.
-            const localDate = new Date(evt.created_at);
-            const y = localDate.getFullYear();
-            const m = String(localDate.getMonth() + 1).padStart(2, '0');
-            const d = String(localDate.getDate()).padStart(2, '0');
-            const key = `${y}-${m}-${d}`;
-            map[key] = (map[key] || 0) + 1;
+          if (res.ok) {
+            const contribData = await res.json();
+            if (contribData && Array.isArray(contribData.contributions)) {
+              const map = {};
+              for (const day of contribData.contributions) {
+                if (day.count > 0) {
+                  map[day.date] = day.count;
+                }
+              }
+              setActivityMap(map);
+            } else {
+              setActivityMap(eventsMap);
+            }
+          } else {
+            setActivityMap(eventsMap);
           }
-          setActivityMap(map);
-          setEventTimestamps(timestamps);
         } catch {
-          // Events API failing should not break the rest of the profile view.
-          setActivityMap({});
+          if (requestIdRef.current === requestId) {
+            setActivityMap(eventsMap);
+          }
         } finally {
-          setEventsLoading(false);
+          if (requestIdRef.current === requestId) {
+            setEventsLoading(false);
+          }
         }
       }
     } catch (caughtError) {
