@@ -14,7 +14,7 @@ function StatBlock({ label, value, loading }) {
   );
 }
 
-function ProfileCard({ profile, loading }) {
+function ProfileCard({ profile, loading, isCompare }) {
   // Hooks must run on every render, so they sit above every early return (loading and !profile
   // below). useCountUp coerces its argument with Number(x) || 0, so passing undefined while the
   // profile is still loading is safe — the component returns before these values are shown.
@@ -25,7 +25,7 @@ function ProfileCard({ profile, loading }) {
   if (loading) {
     return (
       <section className="panel p-5 sm:p-6 animate-fade-in-up opacity-0" aria-busy="true">
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
+        <div className={isCompare ? "flex flex-col gap-5" : "grid gap-6 lg:grid-cols-[1.2fr_0.9fr]"}>
           <div className="flex gap-4">
             <div className="h-20 w-20 shrink-0 rounded-full bg-[var(--gs-surface-alt)] animate-pulse" />
             <div className="flex-1 space-y-3 pt-1">
@@ -35,7 +35,7 @@ function ProfileCard({ profile, loading }) {
               <div className="h-4 w-2/3 rounded bg-[var(--gs-surface-alt)] animate-pulse" />
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className={isCompare ? "grid grid-cols-3 gap-3" : "grid gap-3 sm:grid-cols-3"}>
             <div className="h-20 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] animate-pulse" />
             <div className="h-20 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] animate-pulse" />
             <div className="h-20 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] animate-pulse" />
@@ -51,7 +51,7 @@ function ProfileCard({ profile, loading }) {
 
   return (
     <section className="panel p-5 sm:p-6 animate-fade-in-up opacity-0">
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
+      <div className={isCompare ? "flex flex-col gap-5" : "grid gap-6 lg:grid-cols-[1.2fr_0.9fr]"}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <img
             className="h-20 w-20 rounded-full border border-[var(--gs-border)] object-cover ring-4 ring-[var(--gs-bg)] transition-transform duration-300 hover:scale-105"
@@ -99,7 +99,7 @@ function ProfileCard({ profile, loading }) {
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+        <div className={isCompare ? "grid grid-cols-3 gap-3" : "grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3"}>
           <StatBlock label="Followers" value={formatStatValue(animatedFollowers, profile.followers)} />
           <StatBlock label="Following" value={formatStatValue(animatedFollowing, profile.following)} />
           <StatBlock label="Public Repos" value={formatStatValue(animatedRepos, profile.public_repos)} />

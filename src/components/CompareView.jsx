@@ -96,7 +96,7 @@ function CompareView({ profile1, repos1, loading1, profile2, repos2, loading2 })
       <div className="relative flex flex-col gap-6 md:grid md:grid-cols-2 md:gap-8">
         {/* User 1 */}
         <div className="relative flex-1">
-          <ProfileCard profile={profile1} loading={loading1} />
+          <ProfileCard profile={profile1} loading={loading1} isCompare />
         </div>
 
         {/* VS Badge (Desktop) */}
@@ -115,7 +115,7 @@ function CompareView({ profile1, repos1, loading1, profile2, repos2, loading2 })
 
         {/* User 2 */}
         <div className="relative flex-1">
-          <ProfileCard profile={profile2} loading={loading2} />
+          <ProfileCard profile={profile2} loading={loading2} isCompare />
         </div>
       </div>
 
