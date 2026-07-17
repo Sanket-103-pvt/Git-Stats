@@ -45,6 +45,10 @@
     --gs-error: #cf222e;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply min-h-screen bg-[var(--gs-bg)] text-[var(--gs-text)] antialiased;
     font-family: 'Inter', sans-serif;
