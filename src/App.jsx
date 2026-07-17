@@ -436,10 +436,10 @@ function App() {
           // Ignore event fetch failure
         }
 
-        try {
+         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 6000);
-          const res = await fetch(`https://github-contributions.vercel.app/api/v1/${encodeURIComponent(username)}`, {
+          const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(username)}`, {
             signal: controller.signal,
           });
           clearTimeout(timeoutId);
