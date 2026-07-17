@@ -1,4 +1,5 @@
-import { GitFork, Star } from 'lucide-react';
+import { useState } from 'react';
+import { Check, Copy, GitFork, Star } from 'lucide-react';
 
 function RepoSkeleton({ index = 0 }) {
   return (
@@ -39,6 +40,8 @@ function getLanguageColor(language) {
 }
 
 function RepoCard({ repo, loading, index = 0 }) {
+  const [copied, setCopied] = useState(false);
+
   if (loading) {
     return <RepoSkeleton index={index} />;
   }
@@ -46,6 +49,18 @@ function RepoCard({ repo, loading, index = 0 }) {
   if (!repo) {
     return null;
   }
+
+  const handleCopyCloneUrl = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(repo.clone_url)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {
+        // Ignore copy failure
+      });
+  };
 
   return (
     <article
@@ -84,6 +99,15 @@ function RepoCard({ repo, loading, index = 0 }) {
             <GitFork className="h-4 w-4 text-[var(--gs-success)]" />
             {repo.forks_count.toLocaleString()}
           </span>
+          <button
+            type="button"
+            onClick={handleCopyCloneUrl}
+            title="Copy git clone URL"
+            className="inline-flex items-center gap-1.5 text-xs text-[var(--gs-text-secondary)] hover:text-[var(--gs-accent)] transition-colors p-1 rounded hover:bg-[var(--gs-surface-alt)]"
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-[var(--gs-success)]" /> : <Copy className="h-3.5 w-3.5" />}
+            <span>{copied ? 'Copied!' : 'Clone'}</span>
+          </button>
         </div>
         {repo.fork ? <span className="text-[11px] uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">Fork</span> : null}
       </div>
