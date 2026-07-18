@@ -12,7 +12,6 @@ import GitHubWrapped from './components/GitHubWrapped';
 import PlayerCardModal from './components/PlayerCardModal';
 import ContributionHeatmap from './components/ContributionHeatmap';
 import SearchHistory from './components/SearchHistory';
-import { getAccountAgeYears } from './lib/repoStats';
 
 const THEME_KEY = 'gitstats-theme';
 const HISTORY_KEY = 'gitstats-history';
@@ -870,12 +869,6 @@ function App() {
         {!loading && !profile && !error && (!compareMode || (!loading2 && !profile2 && !error2)) ? (
           <div className="flex justify-center pb-8 pt-2 text-xs uppercase tracking-[0.22em] text-[var(--gs-text-secondary)]">
             {compareMode ? 'Search two usernames to begin comparison.' : 'Search a username to begin.'}
-          </div>
-        ) : null}
-
-        {profile && !compareMode ? (
-          <div className="pb-2 text-right text-[11px] uppercase tracking-[0.2em] text-[var(--gs-text-secondary)]">
-            Account age: {getAccountAgeYears(profile.created_at)} years
           </div>
         ) : null}
       </main>
