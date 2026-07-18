@@ -208,8 +208,7 @@ function CompareView({ profile1, repos1, loading1, profile2, repos2, loading2 })
 
       {/* Winner Summary Card */}
       {profile1 && profile2 && !loading1 && !loading2 && (
-        <div className="panel p-6 bg-[linear-gradient(135deg,rgba(88,166,255,0.08),transparent_45%,rgba(63,185,80,0.04)_80%,transparent)] relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(88,166,255,0.05),transparent_70%)] pointer-events-none" />
+        <div className="panel p-6 relative overflow-hidden">
           <div className="relative z-10 flex flex-col items-center text-center">
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--gs-accent)]">
               Who Wins Overall?

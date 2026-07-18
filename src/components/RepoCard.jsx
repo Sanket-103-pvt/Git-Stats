@@ -65,7 +65,7 @@ function RepoCard({ repo, loading, index = 0 }) {
   return (
     <article
       style={{ animationDelay: `${index * 0.05}s` }}
-      className="panel p-5 transition-all duration-200 hover:border-[var(--gs-accent)]/60 hover:bg-[var(--gs-surface-alt)] hover:-translate-y-[2px] hover:shadow-md animate-fade-in-up opacity-0"
+      className="panel p-5 transition-all duration-200 hover:border-[#ff6b35]/65 hover:bg-[#0c0c0c] hover:-translate-y-[2px] animate-fade-in-up opacity-0"
     >
       <div className="flex items-start justify-between gap-4">
         <a
@@ -78,7 +78,7 @@ function RepoCard({ repo, loading, index = 0 }) {
         </a>
         <div className="flex items-center gap-1.5 shrink-0">
           {repo.license ? (
-            <span className="inline-flex items-center rounded-full border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-2 py-0.5 text-[10px] font-semibold text-[var(--gs-text-secondary)] uppercase tracking-wider">
+            <span className="inline-flex items-center rounded-full border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-2 py-0.5 text-[10px] font-semibold text-[var(--gs-text)] uppercase tracking-wider">
               {repo.license.spdx_id || repo.license.name}
             </span>
           ) : null}

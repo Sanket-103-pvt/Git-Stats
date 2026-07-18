@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, ArrowUp, GitCompare, LoaderCircle, MoonStar, Search, Share2, SunMedium } from 'lucide-react';
+import { AlertCircle, ArrowUp, GitCompare, LoaderCircle, MoonStar, Search, SunMedium } from 'lucide-react';
 import ProfileCard from './components/ProfileCard';
 import StatsBar from './components/StatsBar';
 import LanguageChart from './components/LanguageChart';
@@ -610,8 +610,8 @@ function App() {
               }}
               className={`inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border transition ${
                 compareMode
-                  ? 'border-[var(--gs-accent)] bg-[var(--gs-accent)]/10 text-[var(--gs-accent)]'
-                  : 'border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)]'
+                  ? 'border-[#ff6b35] bg-[#ff6b35]/10 text-[#ff6b35]'
+                  : 'border-[var(--gs-border)] bg-[var(--gs-surface)] text-[#e5e5e5] hover:border-[#ff6b35]/60 hover:text-[#ff6b35]'
               }`}
             >
               <GitCompare className="h-4.5 w-4.5" />
@@ -620,15 +620,6 @@ function App() {
 
             {profile && !compareMode && (
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleShareLink}
-                  className="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] transition animate-fade-in"
-                >
-                  <Share2 className="h-4.5 w-4.5" />
-                  <span className="hidden sm:inline">Share</span>
-                </button>
-
                 <GitHubWrapped
                   profile={profile}
                   repos={repos}
@@ -666,9 +657,8 @@ function App() {
 
       <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <section className="panel relative overflow-hidden p-5 sm:p-6">
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(88,166,255,0.08),transparent_35%,rgba(63,185,80,0.04)_70%,transparent)]" />
           <div className="relative z-10 mx-auto max-w-3xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gs-accent)]">Instant profile intelligence</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#ff6b35]">Instant profile intelligence</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--gs-text)] sm:text-4xl">
               Explore a GitHub profile without leaving the page.
             </h1>
@@ -680,7 +670,7 @@ function App() {
           <form onSubmit={handleSubmit} className="relative z-10 mx-auto mt-6 max-w-3xl">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3 sm:flex-row">
-                <div className="flex flex-1 items-center gap-3 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-4 py-3 focus-within:border-[var(--gs-accent)] focus-within:ring-2 focus-within:ring-[var(--gs-accent)]">
+                <div className="flex flex-1 items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3 focus-within:border-[#ff6b35]">
                   <Search className="h-4.5 w-4.5 shrink-0 text-[var(--gs-text-secondary)]" />
                   <input
                     id="username-search"
@@ -695,7 +685,7 @@ function App() {
                 </div>
 
                 {compareMode && (
-                  <div className="flex flex-1 items-center gap-3 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-4 py-3 focus-within:border-[var(--gs-accent)] focus-within:ring-2 focus-within:ring-[var(--gs-accent)]">
+                  <div className="flex flex-1 items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3 focus-within:border-[#ff6b35]">
                     <Search className="h-4.5 w-4.5 shrink-0 text-[var(--gs-text-secondary)]" />
                     <input
                       id="username-search-2"
@@ -722,9 +712,9 @@ function App() {
               <button
                 type="submit"
                 disabled={loading || (compareMode && loading2)}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--gs-accent)] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#ff6b35] px-5 py-3 text-sm font-semibold text-black transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {loading || loading2 ? <LoaderCircle className="h-4.5 w-4.5 animate-spin" /> : <Search className="h-4.5 w-4.5" />}
+                {loading || loading2 ? <LoaderCircle className="h-4.5 w-4.5 animate-spin text-black" /> : <Search className="h-4.5 w-4.5 text-black" />}
                 {compareMode ? 'Compare Profiles' : 'Search'}
               </button>
             </div>
