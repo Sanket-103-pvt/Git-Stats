@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, ArrowUp, GitCompare, LoaderCircle, MoonStar, Search, Share2, SunMedium } from 'lucide-react';
+import { AlertCircle, ArrowUp, GitCompare, LoaderCircle, MoonStar, Printer, Search, Share2, SunMedium } from 'lucide-react';
 import ProfileCard from './components/ProfileCard';
 import StatsBar from './components/StatsBar';
 import LanguageChart from './components/LanguageChart';
@@ -643,6 +643,15 @@ function App() {
                   activityMap={activityMap}
                   eventTimestamps={eventTimestamps}
                 />
+
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] transition animate-fade-in"
+                >
+                  <Printer className="h-4.5 w-4.5" />
+                  <span className="hidden sm:inline">Export PDF</span>
+                </button>
               </div>
             )}
 
