@@ -12,7 +12,6 @@ import GitHubWrapped from './components/GitHubWrapped';
 import PlayerCardModal from './components/PlayerCardModal';
 import ContributionHeatmap from './components/ContributionHeatmap';
 import SearchHistory from './components/SearchHistory';
-import { getAccountAgeYears } from './lib/repoStats';
 
 const THEME_KEY = 'gitstats-theme';
 const HISTORY_KEY = 'gitstats-history';
@@ -31,7 +30,25 @@ function getInitialTheme() {
 // that into a normal, recoverable error.
 const REQUEST_TIMEOUT_MS = 12000;
 
+// Enhancement: Implement short-TTL sessionStorage cache to prevent exceeding the unauthenticated GitHub API rate limit
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
 async function fetchGitHubJson(url) {
+  const cacheKey = `gitstats_cache_${url.toLowerCase()}`;
+  
+  try {
+    const cachedItem = sessionStorage.getItem(cacheKey);
+    if (cachedItem) {
+      const parsed = JSON.parse(cachedItem);
+      const isExpired = Date.now() - parsed.timestamp > CACHE_TTL_MS;
+      if (!isExpired) {
+        return parsed.data;
+      }
+    }
+  } catch (cacheReadError) {
+    console.warn('Failed to read from cache storage:', cacheReadError);
+  }
+
   let token = '';
   try {
     token = import.meta.env && import.meta.env.VITE_GITHUB_TOKEN;
@@ -56,8 +73,6 @@ async function fetchGitHubJson(url) {
       signal: controller.signal,
     });
   } catch (fetchError) {
-    // AbortController surfaces the timeout as an AbortError; anything else is a genuine network
-    // failure. Flag the timeout so the caller can show a message that tells the user to retry.
     if (fetchError.name === 'AbortError') {
       const timeoutError = new Error('GitHub request timed out');
       timeoutError.isTimeout = true;
@@ -69,14 +84,24 @@ async function fetchGitHubJson(url) {
   }
 
   if (response.ok) {
-    return response.json();
+    const data = await response.json();
+    
+    try {
+      const cacheData = {
+        data: data,
+        timestamp: Date.now(),
+      };
+      sessionStorage.setItem(cacheKey, JSON.stringify(cacheData));
+    } catch (cacheWriteError) {
+      console.warn('Failed to write to cache storage:', cacheWriteError);
+    }
+
+    return data;
   }
 
   const error = new Error('GitHub request failed');
   error.status = response.status;
   error.body = await response.json().catch(() => null);
-  // GitHub reports rate-limit state in headers. Capture them so the caller can tell a real rate
-  // limit (remaining === 0) from other 403s, and can show the actual reset time instead of a guess.
   error.rateLimitRemaining = response.headers.get('x-ratelimit-remaining');
   error.rateLimitReset = response.headers.get('x-ratelimit-reset');
   error.retryAfter = response.headers.get('retry-after');
@@ -844,12 +869,6 @@ function App() {
         {!loading && !profile && !error && (!compareMode || (!loading2 && !profile2 && !error2)) ? (
           <div className="flex justify-center pb-8 pt-2 text-xs uppercase tracking-[0.22em] text-[var(--gs-text-secondary)]">
             {compareMode ? 'Search two usernames to begin comparison.' : 'Search a username to begin.'}
-          </div>
-        ) : null}
-
-        {profile && !compareMode ? (
-          <div className="pb-2 text-right text-[11px] uppercase tracking-[0.2em] text-[var(--gs-text-secondary)]">
-            Account age: {getAccountAgeYears(profile.created_at)} years
           </div>
         ) : null}
       </main>
