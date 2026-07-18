@@ -1,6 +1,19 @@
 import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Download, Sparkles } from 'lucide-react';
+import { 
+  X, 
+  Download, 
+  Sparkles, 
+  Twitter, 
+  Linkedin, 
+  ChevronDown, 
+  GitPullRequest, 
+  Flame, 
+  Shield, 
+  Globe,
+  Award,
+  Star
+} from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 export default function PlayerCardModal({ profile, repos, activityMap }) {
@@ -14,6 +27,8 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
   const activeDays = Object.values(activityMap || {}).filter((v) => v > 0).length;
   const totalStars = repos.reduce((a, r) => a + (r.stargazers_count || 0), 0);
   const totalForks = repos.reduce((a, r) => a + (r.forks_count || 0), 0);
+  const totalContributions = Object.values(activityMap || {}).reduce((a, b) => a + b, 0);
+  const topRepoReach = Math.max(0, ...repos.map(r => r.stargazers_count || 0));
   
   const uniqueLangs = new Set(repos.map((r) => r.language).filter(Boolean));
   const uniqueLangsCount = uniqueLangs.size;
@@ -40,20 +55,130 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
   // Overall rating (OVR)
   const ovr = Math.round((pac + sho + pas + dri + def + phy) / 6);
 
+  // Mapped/Derived Scouting Metrics
+  const skillMoves = Math.min(5, Math.max(1, Math.round(ovr / 20)));
+
+  // Weak Foot (consistency based on stat variance)
+  const statsList = [pac, sho, pas, dri, def, phy];
+  const mean = statsList.reduce((a, b) => a + b, 0) / 6;
+  const variance = statsList.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / 6;
+  let weakFoot = 3;
+  if (variance < 25) {
+    weakFoot = 5;
+  } else if (variance < 50) {
+    weakFoot = 4;
+  } else if (variance < 100) {
+    weakFoot = 3;
+  } else if (variance < 200) {
+    weakFoot = 2;
+  } else {
+    weakFoot = 1;
+  }
+
+  // Work Rate
+  const attackRate = pac > 75 ? 'HIGH' : pac > 60 ? 'MED' : 'LOW';
+  const defenseRate = def > 75 ? 'HIGH' : def > 60 ? 'MED' : 'LOW';
+  const workRate = `${attackRate} / ${defenseRate}`;
+
+  // Style Tag
+  const maxStat = Math.max(...statsList);
+  const minStat = Math.min(...statsList);
+  let styleTag = 'BALANCED';
+  if (maxStat - minStat < 15) {
+    styleTag = 'COMPLETE';
+  } else if (maxStat === pac) {
+    styleTag = 'ENGINE';
+  } else if (maxStat === dri) {
+    styleTag = 'MAVERICK';
+  } else if (maxStat === def) {
+    styleTag = 'INDUSTRIOUS';
+  } else if (maxStat === sho) {
+    styleTag = 'FINISHER';
+  } else if (maxStat === pas) {
+    styleTag = 'PLAYMAKER';
+  } else if (maxStat === phy) {
+    styleTag = 'ENFORCER';
+  }
+
+  // Archetype
+  let archetype = 'ALL-ROUNDER';
+  if (dri > 75 && pas > 75) {
+    archetype = 'FANTASISTA';
+  } else if (def > 75) {
+    archetype = 'THE WALL';
+  } else if (sho > 75) {
+    archetype = 'SNIPER';
+  } else if (pac > 75) {
+    archetype = 'SPEEDSTER';
+  } else if (pas > 75) {
+    archetype = 'PLAYMAKER';
+  }
+
+  // Flavor Text
+  let flavorText = "ONE TO WATCH — the playmaker: coordinating modules and balancing architectures.";
+  if (archetype === 'FANTASISTA') {
+    flavorText = "ONE TO WATCH — the magician: a polyglot wizard weaving through many stacks.";
+  } else if (archetype === 'THE WALL') {
+    flavorText = "SECURE GUARD — the wall: protecting production and refactoring legacy systems.";
+  } else if (archetype === 'SNIPER') {
+    flavorText = "THE FINISHER — precise execution: driving stars, clean codebases, and high impact.";
+  } else if (archetype === 'SPEEDSTER') {
+    flavorText = "THE ENGINE — relentless pace: pushing features and shipping updates rapidly.";
+  }
+
+  // Playstyles List
+  const playstyles = [];
+  if (uniqueLangsCount > 3) {
+    playstyles.push({ name: 'Polyglot', desc: 'Working across multiple stacks', icon: Globe });
+  }
+  if (totalForks > 5) {
+    playstyles.push({ name: 'Connector', desc: 'Highly collaborative developer', icon: GitPullRequest });
+  }
+  if (totalContributions > 200) {
+    playstyles.push({ name: 'Rapid Fire', desc: 'Extremely high commit velocity', icon: Flame });
+  }
+  if (years > 3) {
+    playstyles.push({ name: 'Maintainer', desc: 'Long-term repository steward', icon: Shield });
+  }
+  // Ensure we have at least 3 playstyles
+  if (playstyles.length < 3) {
+    playstyles.push({ name: 'Specialist', desc: 'Deep language mastery', icon: Award });
+  }
+  if (playstyles.length < 3) {
+    playstyles.push({ name: 'Tactician', desc: 'Clean architecture design', icon: Sparkles });
+  }
+
+  // Raw metrics and their 0-99 scores
+  const prsCount = Math.round(totalForks * 1.2 + activeDays * 0.1);
+  const issuesCount = Math.round(activeDays * 0.15 + (profile.public_repos || 0) * 0.3);
+  const codeReviews = Math.round(activeDays * 0.08 + totalForks * 0.5);
+
+  const rawMetrics = [
+    { label: 'Commits', raw: `${totalContributions} commits`, score: Math.min(99, Math.max(50, 50 + Math.round(Math.min(49, totalContributions * 0.1)))) },
+    { label: 'Stars earned', raw: `${totalStars} stars`, score: sho },
+    { label: 'Top repo reach', raw: `${topRepoReach} stars`, score: Math.min(99, Math.max(50, 50 + Math.round(Math.min(49, 15 * Math.log2(topRepoReach + 1))))) },
+    { label: 'Pull requests', raw: `${prsCount} PRs`, score: Math.min(99, Math.max(50, 50 + Math.round(Math.min(49, prsCount * 2.5)))) },
+    { label: 'Followers', raw: `${profile.followers || 0} followers`, score: pas },
+    { label: 'Languages', raw: `${uniqueLangsCount} langs`, score: Math.min(99, Math.max(50, 50 + Math.round(Math.min(49, uniqueLangsCount * 7.5)))) },
+    { label: 'Issues', raw: `${issuesCount} issues`, score: Math.min(99, Math.max(50, 50 + Math.round(Math.min(49, issuesCount * 2.0)))) },
+    { label: 'Code reviews', raw: `${codeReviews} reviews`, score: Math.min(99, Math.max(50, 50 + Math.round(Math.min(49, codeReviews * 3.0)))) },
+    { label: 'Contributions', raw: `${totalContributions} total`, score: Math.min(99, Math.max(50, 50 + Math.round(Math.min(49, totalContributions * 0.08)))) },
+  ];
+
   // Position logic
-  let position = 'ST'; // Fullstack Striker
+  let position = 'ST'; 
   const mainLang = [...uniqueLangs][0] || 'JavaScript';
   
   if (['HTML', 'CSS', 'TypeScript'].includes(mainLang)) {
-    position = 'RW'; // Right Winger (Frontend)
+    position = 'RW'; 
   } else if (['Go', 'Rust', 'Java', 'C++', 'Ruby'].includes(mainLang)) {
-    position = 'CB'; // Center Back (Backend / Infrastructure)
+    position = 'CB'; 
   } else if (['Python', 'R', 'Julia'].includes(mainLang)) {
-    position = 'CM'; // Center Mid (Data / Analytics)
+    position = 'CM'; 
   } else if (['Shell', 'PowerShell', 'Docker'].includes(mainLang)) {
-    position = 'GK'; // Goalkeeper (DevOps / Protection)
+    position = 'GK'; 
   } else if (mainLang === 'JavaScript') {
-    position = 'LW'; // Left Winger (Frontend)
+    position = 'LW'; 
   }
 
   // Country Flag Detection
@@ -141,7 +266,7 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
-        scale: 2, // Retain sharp borders on save
+        scale: 2, 
       });
       
       const link = document.createElement('a');
@@ -155,10 +280,12 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
     }
   };
 
-  // Append timestamp parameter to force fresh CORS-compliant image fetch in html2canvas
   const avatarUrl = profile.avatar_url
     ? `${profile.avatar_url}${profile.avatar_url.includes('?') ? '&' : '?'}t=${Date.now()}`
     : '';
+
+  // Bell Curve Positioning logic (OVR range 50 to 100 mapped to 0 to 100)
+  const bellCurvePercent = Math.min(100, Math.max(0, ((ovr - 50) / 50) * 100));
 
   return (
     <>
@@ -172,137 +299,410 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
       </button>
 
       {isOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-start sm:justify-center overflow-y-auto bg-black/85 backdrop-blur-md py-16 px-4 select-none">
-          {/* Controls Bar */}
-          <div className="absolute top-6 right-6 flex gap-3 text-white z-50">
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={downloading}
-              className={`inline-flex items-center gap-2 h-10 px-5 text-sm font-bold rounded-full border ${theme.btnBorder} ${theme.btnBg} transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50`}
-            >
-              <Download className="h-4.5 w-4.5" />
-              <span>{downloading ? 'Exporting...' : 'Download Card'}</span>
-            </button>
+        <div className="fixed inset-0 z-[9999] bg-slate-950 overflow-y-auto select-none font-sans text-slate-100">
+          
+          {/* Main Top Header Controls */}
+          <div className="sticky top-0 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 z-50 px-6 py-4 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <span className="text-xl font-bold tracking-wider text-[var(--gs-accent)]">SCOUTING REPORT</span>
+              <span className="text-xs px-2 py-0.5 rounded bg-slate-800 border border-slate-700 uppercase font-mono tracking-widest text-slate-400">
+                PRO-DEV MATCH
+              </span>
+            </div>
             
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="rounded-full p-2 bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-colors"
+              className="rounded-full p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          {/* FIFA Player Card Container */}
-          <div className="flex flex-col items-center gap-6 mt-8 sm:mt-0">
-            <div
-              ref={cardRef}
-              style={{
-                clipPath: 'polygon(50% 0%, 100% 12%, 100% 80%, 50% 100%, 0% 80%, 0% 12%)',
-              }}
-              className={`relative w-[320px] h-[460px] p-[2.5px] bg-gradient-to-b ${theme.border} shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_60px_rgba(255,255,255,0.15)]`}
-            >
-              {/* Inner Shield */}
-              <div
-                style={{
-                  clipPath: 'polygon(50% 0%, 100% 12%, 100% 80%, 50% 100%, 0% 80%, 0% 12%)',
-                }}
-                className={`relative w-full h-full bg-gradient-to-b ${theme.bg} p-6 flex flex-col justify-between overflow-hidden text-white`}
-              >
-                {/* SVG Fractal Noise Overlay */}
-                <div
-                  className="absolute inset-0 opacity-[0.08] pointer-events-none mix-blend-overlay"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-                  }}
-                />
+          <div className="w-full max-w-6xl mx-auto py-8 px-6 space-y-8 pb-20">
 
-                {/* Diagonal Shine Band Glossy Streak */}
-                <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_45%,rgba(255,255,255,0.15)_50%,transparent_55%)] pointer-events-none" />
-
-                {/* Card Header Info */}
-                <div className="flex justify-between items-start mt-6">
-                  {/* Left-hand attributes column */}
-                  <div className="flex flex-col items-start pl-3 pt-3 space-y-0.5">
-                    <div className="text-5xl font-black tracking-tighter leading-none">{ovr}</div>
-                    <div className={`text-xs font-black tracking-widest uppercase opacity-90 ${theme.text}`}>{position}</div>
-                    
-                    {/* Divider line */}
-                    <div className="h-[1.5px] w-8 bg-white/20 my-1" />
-                    
-                    {/* Flag and Language emblem side-by-side in one row */}
-                    <div className="flex flex-row items-center gap-2 mt-0.5">
-                      <span className="text-xl leading-none" title={profile.location || 'Global'}>{flag}</span>
-                      <span
-                        className="flex items-center justify-center h-5 w-5 rounded-full bg-white/10 border border-white/25 text-[8px] font-extrabold uppercase text-white/90"
-                        title={`Main language: ${mainLang}`}
-                      >
-                        {mainLang.substring(0, 2)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Player Profile Photo */}
-                  <div className="relative pr-2 pt-2">
-                    <div className={`h-32 w-32 rounded-full border-2 ${theme.photoBorder} overflow-hidden shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)] ring-4 ring-black/35 bg-transparent`}>
-                      <img
-                        src={avatarUrl}
-                        alt={profile.login}
-                        className="h-full w-full object-cover"
-                        crossOrigin="anonymous"
-                      />
-                    </div>
-                  </div>
+            {/* TOP HEADER DETAILS */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+              <div className="flex items-start gap-4">
+                {/* OVR + Tier badge */}
+                <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-white/10 bg-slate-900 shadow-md min-w-[70px] text-center">
+                  <div className="text-3xl font-black leading-none">{ovr}</div>
+                  <div className={`text-[9px] font-black uppercase tracking-wider mt-1 ${theme.text}`}>{theme.name}</div>
                 </div>
 
-                {/* Center Name Block */}
-                <div className="text-center mt-3">
-                  <div className="text-xl font-black tracking-[0.25em] uppercase border-b border-white/20 pb-1.5 max-w-[210px] mx-auto truncate text-white shadow-sm">
-                    {profile.name ? profile.name.split(' ')[0] : profile.login}
-                  </div>
-                </div>
-
-                {/* Bottom Attribute Matrix - Horizontal Grid Layout */}
-                <div className="grid grid-cols-3 gap-y-3 gap-x-2 px-4 mb-6 text-center">
-                  <div className="flex flex-col items-center">
-                    <span className={`text-base font-black ${getStatColor(pac)}`}>{pac}</span>
-                    <span className="text-[9px] font-bold text-white/50 tracking-wider">PAC</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className={`text-base font-black ${getStatColor(dri)}`}>{dri}</span>
-                    <span className="text-[9px] font-bold text-white/50 tracking-wider">DRI</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className={`text-base font-black ${getStatColor(sho)}`}>{sho}</span>
-                    <span className="text-[9px] font-bold text-white/50 tracking-wider">SHO</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className={`text-base font-black ${getStatColor(def)}`}>{def}</span>
-                    <span className="text-[9px] font-bold text-white/50 tracking-wider">DEF</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className={`text-base font-black ${getStatColor(pas)}`}>{pas}</span>
-                    <span className="text-[9px] font-bold text-white/50 tracking-wider">PAS</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className={`text-base font-black ${getStatColor(phy)}`}>{phy}</span>
-                    <span className="text-[9px] font-bold text-white/50 tracking-wider">PHY</span>
-                  </div>
-                </div>
-
-                {/* Card Type Badge & Watermark */}
-                <div className="flex flex-col items-center space-y-1 mb-3">
-                  <div className="flex items-center gap-1 text-[9px] font-black tracking-[0.2em] text-white/55 uppercase">
-                    <Sparkles className="h-3 w-3 opacity-75 animate-pulse" />
-                    <span>{theme.badge}</span>
-                  </div>
-                  <div className="text-[8px] font-bold tracking-[0.25em] text-white/30 uppercase">
-                    SANKETCHAUDHARI.IN
+                <div>
+                  <h1 className="text-3xl font-black tracking-tight text-white uppercase">{profile.name || profile.login}</h1>
+                  
+                  {/* Position tag, Archetype, @username, main lang */}
+                  <div className="flex flex-wrap items-center gap-2.5 mt-1.5 text-xs">
+                    <span className={`px-2 py-0.5 rounded font-black text-[10px] bg-slate-800 border border-white/10 ${theme.text}`}>
+                      {position}
+                    </span>
+                    <span className="text-emerald-400 font-bold uppercase tracking-wider">{archetype}</span>
+                    <span className="text-slate-400 font-medium">@{profile.login}</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+                    <span className="text-slate-300 font-bold uppercase tracking-widest">{mainLang}</span>
                   </div>
                 </div>
               </div>
+
+              {/* Flavor Text Block */}
+              <div className="md:max-w-md bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 text-xs font-medium text-slate-300 italic">
+                {flavorText}
+              </div>
             </div>
+
+            {/* 3-COLUMN LAYOUT */}
+            <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] gap-8 items-start">
+              
+              {/* LEFT COLUMN: ATTRIBUTES & PLAYSTYLES */}
+              <div className="space-y-6">
+                
+                {/* ATTRIBUTES PANEL */}
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 space-y-4 shadow-xl">
+                  <h2 className="text-xs font-black tracking-[0.2em] text-slate-400 uppercase border-b border-slate-800 pb-2">
+                    PLAYER ATTRIBUTES
+                  </h2>
+
+                  <div className="space-y-3.5 text-sm">
+                    {/* Skill Moves */}
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-medium">Skill Moves</span>
+                      <div className="flex text-amber-400 text-xs tracking-widest">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`h-3 w-3 ${i < skillMoves ? 'fill-current' : 'opacity-20'}`} />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Weak Foot */}
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-medium">Weak Foot</span>
+                      <div className="flex text-amber-400 text-xs tracking-widest">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`h-3 w-3 ${i < weakFoot ? 'fill-current' : 'opacity-20'}`} />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Work Rate */}
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-medium">Work Rate</span>
+                      <span className="font-mono text-xs font-bold text-slate-200">{workRate}</span>
+                    </div>
+
+                    {/* Style Tag */}
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-medium">Style Tag</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-widest uppercase bg-slate-800 border border-slate-700 ${theme.text}`}>
+                        {styleTag}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PLAYSTYLES PANEL */}
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 space-y-4 shadow-xl">
+                  <h2 className="text-xs font-black tracking-[0.2em] text-slate-400 uppercase border-b border-slate-800 pb-2">
+                    PLAYSTYLES
+                  </h2>
+
+                  <div className="space-y-3.5">
+                    {playstyles.map((ps, idx) => {
+                      const Icon = ps.icon;
+                      return (
+                        <div key={idx} className="flex items-start gap-3">
+                          <div className={`p-2 rounded-lg bg-slate-800 border border-slate-700/60 ${theme.text}`}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-slate-100">{ps.name}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5 leading-tight">{ps.desc}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* CENTER COLUMN: CARD DISPLAY & SHARING ACTIONS */}
+              <div className="flex flex-col items-center justify-center space-y-6">
+                
+                {/* Centered FUT Card Component (rendered exact dimensions) */}
+                <div
+                  ref={cardRef}
+                  style={{
+                    clipPath: 'polygon(50% 0%, 100% 12%, 100% 80%, 50% 100%, 0% 80%, 0% 12%)',
+                  }}
+                  className={`relative w-[320px] h-[460px] p-[2.5px] bg-gradient-to-b ${theme.border} shadow-[0_0_50px_rgba(0,0,0,0.6)] overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_60px_rgba(255,255,255,0.15)]`}
+                >
+                  {/* Inner Shield */}
+                  <div
+                    style={{
+                      clipPath: 'polygon(50% 0%, 100% 12%, 100% 80%, 50% 100%, 0% 80%, 0% 12%)',
+                    }}
+                    className={`relative w-full h-full bg-gradient-to-b ${theme.bg} p-6 flex flex-col justify-between overflow-hidden text-white`}
+                  >
+                    {/* SVG Fractal Noise Overlay */}
+                    <div
+                      className="absolute inset-0 opacity-[0.08] pointer-events-none mix-blend-overlay"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                      }}
+                    />
+
+                    {/* Diagonal Shine Band Glossy Streak */}
+                    <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_45%,rgba(255,255,255,0.15)_50%,transparent_55%)] pointer-events-none" />
+
+                    {/* Card Header Info */}
+                    <div className="flex justify-between items-start mt-6">
+                      {/* Left-hand attributes column */}
+                      <div className="flex flex-col items-start pl-3 pt-3 space-y-0.5">
+                        <div className="text-5xl font-black tracking-tighter leading-none">{ovr}</div>
+                        <div className={`text-xs font-black tracking-widest uppercase opacity-90 ${theme.text}`}>{position}</div>
+                        
+                        {/* Divider line */}
+                        <div className="h-[1.5px] w-8 bg-white/20 my-1" />
+                        
+                        {/* Flag and Language emblem side-by-side in one row */}
+                        <div className="flex flex-row items-center gap-2 mt-0.5">
+                          <span className="text-xl leading-none" title={profile.location || 'Global'}>{flag}</span>
+                          <span
+                            className="flex items-center justify-center h-5 w-5 rounded-full bg-white/10 border border-white/25 text-[8px] font-extrabold uppercase text-white/90"
+                            title={`Main language: ${mainLang}`}
+                          >
+                            {mainLang.substring(0, 2)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Player Profile Photo */}
+                      <div className="relative pr-2 pt-2">
+                        <div className={`h-32 w-32 rounded-full border-2 ${theme.photoBorder} overflow-hidden shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)] ring-4 ring-black/35 bg-transparent`}>
+                          <img
+                            src={avatarUrl}
+                            alt={profile.login}
+                            className="h-full w-full object-cover"
+                            crossOrigin="anonymous"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Center Name Block */}
+                    <div className="text-center mt-3">
+                      <div className="text-xl font-black tracking-[0.25em] uppercase border-b border-white/20 pb-1.5 max-w-[210px] mx-auto truncate text-white shadow-sm">
+                        {profile.name ? profile.name.split(' ')[0] : profile.login}
+                      </div>
+                    </div>
+
+                    {/* Bottom Attribute Matrix - Horizontal Grid Layout */}
+                    <div className="grid grid-cols-3 gap-y-3 gap-x-2 px-4 mb-6 text-center">
+                      <div className="flex flex-col items-center">
+                        <span className={`text-base font-black ${getStatColor(pac)}`}>{pac}</span>
+                        <span className="text-[9px] font-bold text-white/50 tracking-wider">PAC</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className={`text-base font-black ${getStatColor(dri)}`}>{dri}</span>
+                        <span className="text-[9px] font-bold text-white/50 tracking-wider">DRI</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className={`text-base font-black ${getStatColor(sho)}`}>{sho}</span>
+                        <span className="text-[9px] font-bold text-white/50 tracking-wider">SHO</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className={`text-base font-black ${getStatColor(def)}`}>{def}</span>
+                        <span className="text-[9px] font-bold text-white/50 tracking-wider">DEF</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className={`text-base font-black ${getStatColor(pas)}`}>{pas}</span>
+                        <span className="text-[9px] font-bold text-white/50 tracking-wider">PAS</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className={`text-base font-black ${getStatColor(phy)}`}>{phy}</span>
+                        <span className="text-[9px] font-bold text-white/50 tracking-wider">PHY</span>
+                      </div>
+                    </div>
+
+                    {/* Card Type Badge & Watermark */}
+                    <div className="flex flex-col items-center space-y-1 mb-3">
+                      <div className="flex items-center gap-1 text-[9px] font-black tracking-[0.2em] text-white/55 uppercase">
+                        <Sparkles className="h-3 w-3 opacity-75 animate-pulse" />
+                        <span>{theme.badge}</span>
+                      </div>
+                      <div className="text-[8px] font-bold tracking-[0.25em] text-white/30 uppercase">
+                        SANKETCHAUDHARI.IN
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions Grid */}
+                <div className="w-full max-w-[320px] space-y-3">
+                  
+                  {/* Share My Card Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const shareText = `Check out my GitHub Player Card! OVR: ${ovr}, Archetype: ${archetype}. Generated using GitStats.`;
+                      navigator.clipboard.writeText(shareText);
+                      alert('Share link copied to clipboard!');
+                    }}
+                    className="w-full inline-flex items-center justify-center gap-2 h-12 text-sm font-black uppercase rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 shadow-[0_4px_20px_rgba(16,185,129,0.3)] transition active:scale-95 duration-150"
+                  >
+                    <Sparkles className="h-4.5 w-4.5" />
+                    <span>Share My Card</span>
+                  </button>
+
+                  {/* Share Socials Row */}
+                  <div className="grid grid-cols-[48px_48px_1fr] gap-3">
+                    <a
+                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out my GitHub FUT Player Card! OVR: ${ovr}, Position: ${position}. Generate yours at GitStats.`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-center h-12 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition"
+                    >
+                      <Twitter className="h-5 w-5" />
+                    </a>
+                    
+                    <a
+                      href="https://linkedin.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-center h-12 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition"
+                    >
+                      <Linkedin className="h-5 w-5" />
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={handleDownload}
+                      disabled={downloading}
+                      className="flex items-center justify-between px-4 h-12 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 transition font-bold text-sm"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Download className="h-4 w-4" />
+                        <span>{downloading ? 'Exporting...' : 'Download Card'}</span>
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </button>
+                  </div>
+
+                  {/* Duel a Rival Button */}
+                  <button
+                    type="button"
+                    className="w-full inline-flex items-center justify-center gap-2 h-11 text-xs font-bold uppercase rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition active:scale-95"
+                  >
+                    <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[9px] font-black text-rose-400">VS</span>
+                    <span>Duel a Rival</span>
+                  </button>
+
+                </div>
+
+              </div>
+
+              {/* RIGHT COLUMN: SCOUTING METRICS & BELL-CURVE DISTRIBUTION */}
+              <div className="space-y-6">
+                
+                {/* SCOUTING METRICS PANEL */}
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 space-y-4 shadow-xl">
+                  <h2 className="text-xs font-black tracking-[0.2em] text-slate-400 uppercase border-b border-slate-800 pb-2">
+                    SCOUTING METRICS
+                  </h2>
+
+                  <div className="space-y-3.5">
+                    {rawMetrics.map((metric, idx) => (
+                      <div key={idx} className="space-y-1">
+                        <div className="flex justify-between items-end text-xs">
+                          <span className="font-semibold text-slate-200">{metric.label}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-slate-500 font-medium">{metric.raw}</span>
+                            <span className={`font-mono font-black text-sm leading-none ${getStatColor(metric.score)}`}>
+                              {metric.score}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Custom visual progress bar */}
+                        <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800/50">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              metric.score > 85 ? 'bg-emerald-500' : metric.score >= 70 ? 'bg-amber-500' : 'bg-rose-500'
+                            }`}
+                            style={{ width: `${metric.score}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* DISTRIBUTION PANEL */}
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 space-y-4 shadow-xl">
+                  <h2 className="text-xs font-black tracking-[0.2em] text-slate-400 uppercase border-b border-slate-800 pb-2">
+                    RATING DISTRIBUTION
+                  </h2>
+
+                  {/* Bell Curve SVG */}
+                  <div className="relative pt-4">
+                    <svg viewBox="0 0 100 30" className="w-full h-16 overflow-visible text-slate-700 fill-slate-800/20">
+                      {/* Bell curve baseline */}
+                      <path 
+                        d="M 0 30 C 20 30, 35 3, 50 3 C 65 3, 80 30, 100 30" 
+                        fill="rgba(51,65,85,0.15)" 
+                        stroke="rgba(148,163,184,0.3)" 
+                        strokeWidth="1.5" 
+                      />
+                      
+                      {/* Dotted indicator line for user's OVR position */}
+                      <line 
+                        x1={bellCurvePercent} 
+                        y1="2" 
+                        x2={bellCurvePercent} 
+                        y2="30" 
+                        stroke="rgba(245,158,11,0.85)" 
+                        strokeWidth="1.2" 
+                        strokeDasharray="2,2" 
+                      />
+                      
+                      {/* Circle dot representing user */}
+                      <circle 
+                        cx={bellCurvePercent} 
+                        cy="15" 
+                        r="3.5" 
+                        fill="rgba(245,158,11,1)" 
+                        className="animate-pulse"
+                      />
+                    </svg>
+
+                    {/* Position tag labeling user */}
+                    <div 
+                      className="absolute -top-1 bg-amber-500 text-slate-950 font-black font-mono text-[8px] rounded px-1 py-0.5 tracking-tight shadow-md transform -translate-x-1/2"
+                      style={{ left: `${bellCurvePercent}%` }}
+                    >
+                      {profile.login} · {ovr}
+                    </div>
+                  </div>
+
+                  {/* Percentile scores */}
+                  <div className="grid grid-cols-2 gap-3 text-center border-t border-slate-800/80 pt-4">
+                    <div className="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/50">
+                      <div className="text-slate-500 text-[9px] font-bold tracking-wider uppercase">Global percentile</div>
+                      <div className="text-base font-black text-emerald-400 mt-0.5">TOP {Math.max(1, 100 - ovr)}%</div>
+                    </div>
+                    <div className="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/50">
+                      <div className="text-slate-500 text-[9px] font-bold tracking-wider uppercase">Active Percentile</div>
+                      <div className="text-base font-black text-cyan-400 mt-0.5">TOP {Math.max(1, Math.round((100 - ovr) * 1.4))}%</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
           </div>
         </div>,
         document.body
