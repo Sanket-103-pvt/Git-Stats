@@ -81,8 +81,11 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
   let theme = {
     name: 'Bronze',
     border: 'from-orange-700 via-amber-800 to-orange-900',
-    bg: 'from-slate-950 via-orange-950/20 to-slate-950',
+    bg: 'from-slate-950 via-orange-950/25 to-slate-950',
     text: 'text-orange-400',
+    photoBorder: 'border-orange-500/30',
+    btnBg: 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400',
+    btnBorder: 'border-orange-500/30',
     badge: '🏆 Bronze Developer',
   };
 
@@ -92,6 +95,9 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
       border: 'from-blue-600 via-cyan-400 to-indigo-600',
       bg: 'from-slate-950 via-blue-950/90 to-purple-950/95',
       text: 'text-cyan-400',
+      photoBorder: 'border-cyan-500/30',
+      btnBg: 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400',
+      btnBorder: 'border-cyan-500/30',
       badge: '✨ TOTY Icon',
     };
   } else if (ovr >= 80) {
@@ -100,6 +106,9 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
       border: 'from-amber-500 via-yellow-300 to-amber-600',
       bg: 'from-slate-900 via-amber-950/70 to-slate-950',
       text: 'text-yellow-400',
+      photoBorder: 'border-yellow-500/30',
+      btnBg: 'bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400',
+      btnBorder: 'border-yellow-500/30',
       badge: '👑 Gold Class',
     };
   } else if (ovr >= 65) {
@@ -108,9 +117,19 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
       border: 'from-slate-400 via-slate-200 to-slate-500',
       bg: 'from-slate-900 via-slate-800/70 to-slate-950',
       text: 'text-slate-300',
+      photoBorder: 'border-slate-400/30',
+      btnBg: 'bg-slate-400/10 hover:bg-slate-400/20 text-slate-300',
+      btnBorder: 'border-slate-400/30',
       badge: '⭐ Silver Class',
     };
   }
+
+  // Get color based on attribute value
+  const getStatColor = (val) => {
+    if (val > 85) return 'text-emerald-400';
+    if (val >= 70) return 'text-amber-400';
+    return 'text-rose-400';
+  };
 
   const handleDownload = async () => {
     if (!cardRef.current || downloading) return;
@@ -160,9 +179,9 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
               type="button"
               onClick={handleDownload}
               disabled={downloading}
-              className="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white transition disabled:opacity-50"
+              className={`inline-flex items-center gap-2 h-10 px-5 text-sm font-bold rounded-full border ${theme.btnBorder} ${theme.btnBg} transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50`}
             >
-              <Download className="h-4.5 w-4.5 animate-bounce" />
+              <Download className="h-4.5 w-4.5" />
               <span>{downloading ? 'Exporting...' : 'Download Card'}</span>
             </button>
             
@@ -182,7 +201,7 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
               style={{
                 clipPath: 'polygon(50% 0%, 100% 12%, 100% 80%, 50% 100%, 0% 80%, 0% 12%)',
               }}
-              className={`relative w-[320px] h-[460px] p-[3px] bg-gradient-to-b ${theme.border} shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden`}
+              className={`relative w-[320px] h-[460px] p-[2.5px] bg-gradient-to-b ${theme.border} shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_60px_rgba(255,255,255,0.15)]`}
             >
               {/* Inner Shield */}
               <div
@@ -191,29 +210,42 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
                 }}
                 className={`relative w-full h-full bg-gradient-to-b ${theme.bg} p-6 flex flex-col justify-between overflow-hidden text-white`}
               >
-                {/* Shiny Diagonal Overlays */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/10 opacity-80 pointer-events-none" />
+                {/* SVG Fractal Noise Overlay */}
+                <div
+                  className="absolute inset-0 opacity-[0.08] pointer-events-none mix-blend-overlay"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                  }}
+                />
+
+                {/* Diagonal Shine Band Glossy Streak */}
+                <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_45%,rgba(255,255,255,0.15)_50%,transparent_55%)] pointer-events-none" />
 
                 {/* Card Header Info */}
                 <div className="flex justify-between items-start mt-6">
                   {/* Left-hand attributes column */}
-                  <div className="flex flex-col items-center space-y-1.5 pl-2 pt-2">
+                  <div className="flex flex-col items-start pl-3 pt-3 space-y-0.5">
                     <div className="text-5xl font-black tracking-tighter leading-none">{ovr}</div>
                     <div className={`text-xs font-black tracking-widest uppercase opacity-90 ${theme.text}`}>{position}</div>
-                    <div className="h-[2px] w-6 bg-white/25 my-0.5" />
-                    <div className="text-2xl" title={profile.location || 'Global'}>{flag}</div>
-                    <div className="h-[2px] w-6 bg-white/25 my-0.5" />
-                    <div
-                      className="flex items-center justify-center h-6 w-6 rounded-full bg-white/10 border border-white/20 text-[9px] font-extrabold uppercase text-white/90"
-                      title={`Main language: ${mainLang}`}
-                    >
-                      {mainLang.substring(0, 2)}
+                    
+                    {/* Divider line */}
+                    <div className="h-[1.5px] w-8 bg-white/20 my-1" />
+                    
+                    {/* Flag and Language emblem side-by-side in one row */}
+                    <div className="flex flex-row items-center gap-2 mt-0.5">
+                      <span className="text-xl leading-none" title={profile.location || 'Global'}>{flag}</span>
+                      <span
+                        className="flex items-center justify-center h-5 w-5 rounded-full bg-white/10 border border-white/25 text-[8px] font-extrabold uppercase text-white/90"
+                        title={`Main language: ${mainLang}`}
+                      >
+                        {mainLang.substring(0, 2)}
+                      </span>
                     </div>
                   </div>
 
                   {/* Player Profile Photo */}
                   <div className="relative pr-2 pt-2">
-                    <div className="h-28 w-28 rounded-full border-2 border-white/25 overflow-hidden shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)] ring-4 ring-black/35">
+                    <div className={`h-32 w-32 rounded-full border-2 ${theme.photoBorder} overflow-hidden shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)] ring-4 ring-black/35 bg-transparent`}>
                       <img
                         src={avatarUrl}
                         alt={profile.login}
@@ -225,43 +257,49 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
                 </div>
 
                 {/* Center Name Block */}
-                <div className="text-center mt-2">
-                  <div className="text-xl font-black tracking-[0.2em] uppercase border-b border-white/20 pb-1.5 max-w-[200px] mx-auto truncate">
+                <div className="text-center mt-3">
+                  <div className="text-xl font-black tracking-[0.25em] uppercase border-b border-white/20 pb-1.5 max-w-[210px] mx-auto truncate text-white shadow-sm">
                     {profile.name ? profile.name.split(' ')[0] : profile.login}
                   </div>
                 </div>
 
-                {/* Bottom Attribute Matrix */}
-                <div className="grid grid-cols-2 gap-x-8 gap-y-2 px-6 mb-8 text-xs font-semibold">
-                  <div className="flex justify-between border-r border-white/15 pr-4">
-                    <span className="text-white/50 tracking-wider">PAC</span>
-                    <span className={`font-black ${theme.text}`}>{pac}</span>
+                {/* Bottom Attribute Matrix - Horizontal Grid Layout */}
+                <div className="grid grid-cols-3 gap-y-3 gap-x-2 px-4 mb-6 text-center">
+                  <div className="flex flex-col items-center">
+                    <span className={`text-base font-black ${getStatColor(pac)}`}>{pac}</span>
+                    <span className="text-[9px] font-bold text-white/50 tracking-wider">PAC</span>
                   </div>
-                  <div className="flex justify-between pl-4">
-                    <span className="text-white/50 tracking-wider">DRI</span>
-                    <span className={`font-black ${theme.text}`}>{dri}</span>
+                  <div className="flex flex-col items-center">
+                    <span className={`text-base font-black ${getStatColor(dri)}`}>{dri}</span>
+                    <span className="text-[9px] font-bold text-white/50 tracking-wider">DRI</span>
                   </div>
-                  <div className="flex justify-between border-r border-white/15 pr-4">
-                    <span className="text-white/50 tracking-wider">SHO</span>
-                    <span className={`font-black ${theme.text}`}>{sho}</span>
+                  <div className="flex flex-col items-center">
+                    <span className={`text-base font-black ${getStatColor(sho)}`}>{sho}</span>
+                    <span className="text-[9px] font-bold text-white/50 tracking-wider">SHO</span>
                   </div>
-                  <div className="flex justify-between pl-4">
-                    <span className="text-white/50 tracking-wider">DEF</span>
-                    <span className={`font-black ${theme.text}`}>{def}</span>
+                  <div className="flex flex-col items-center">
+                    <span className={`text-base font-black ${getStatColor(def)}`}>{def}</span>
+                    <span className="text-[9px] font-bold text-white/50 tracking-wider">DEF</span>
                   </div>
-                  <div className="flex justify-between border-r border-white/15 pr-4">
-                    <span className="text-white/50 tracking-wider">PAS</span>
-                    <span className={`font-black ${theme.text}`}>{pas}</span>
+                  <div className="flex flex-col items-center">
+                    <span className={`text-base font-black ${getStatColor(pas)}`}>{pas}</span>
+                    <span className="text-[9px] font-bold text-white/50 tracking-wider">PAS</span>
                   </div>
-                  <div className="flex justify-between pl-4">
-                    <span className="text-white/50 tracking-wider">PHY</span>
-                    <span className={`font-black ${theme.text}`}>{phy}</span>
+                  <div className="flex flex-col items-center">
+                    <span className={`text-base font-black ${getStatColor(phy)}`}>{phy}</span>
+                    <span className="text-[9px] font-bold text-white/50 tracking-wider">PHY</span>
                   </div>
                 </div>
 
-                {/* Card Type Badge */}
-                <div className="text-center text-[9px] font-black tracking-[0.25em] text-white/40 mb-3 uppercase flex items-center justify-center gap-1.5">
-                  <span>{theme.badge}</span>
+                {/* Card Type Badge & Watermark */}
+                <div className="flex flex-col items-center space-y-1 mb-3">
+                  <div className="flex items-center gap-1 text-[9px] font-black tracking-[0.2em] text-white/55 uppercase">
+                    <Sparkles className="h-3 w-3 opacity-75 animate-pulse" />
+                    <span>{theme.badge}</span>
+                  </div>
+                  <div className="text-[8px] font-bold tracking-[0.25em] text-white/30 uppercase">
+                    SANKETCHAUDHARI.IN
+                  </div>
                 </div>
               </div>
             </div>
