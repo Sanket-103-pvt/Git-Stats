@@ -8,7 +8,7 @@ function StatsSkeleton() {
         <div
           key={index}
           style={{ animationDelay: `${index * 0.05}s` }}
-          className="h-16 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] animate-pulse animate-fade-in opacity-0"
+          className="h-16 rounded-lg border border-[var(--gs-stat-border)] bg-[var(--gs-stat-bg)] animate-pulse animate-fade-in opacity-0"
         />
       ))}
     </div>
@@ -19,7 +19,7 @@ function StatTile({ label, value, triggerValue, index = 0 }) {
   return (
     <div
       style={{ animationDelay: `${index * 0.05}s` }}
-      className="rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] px-4 py-3 animate-fade-in opacity-0"
+      className="rounded-lg border border-[var(--gs-stat-border)] bg-[var(--gs-stat-bg)] px-4 py-3 animate-fade-in opacity-0"
     >
       <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">{label}</div>
       <div

@@ -28,10 +28,11 @@ function toLocalDateString(date) {
  * Colours follow GitHub's green-square convention, mapped to CSS variables.
  */
 function getCellStyle(count) {
-  if (count === 0) return { backgroundColor: 'var(--gs-border)', opacity: 0.5 };
-  if (count <= 2)  return { backgroundColor: '#26a641', opacity: 0.5 };
-  if (count <= 5)  return { backgroundColor: '#26a641', opacity: 0.75 };
-  return              { backgroundColor: '#26a641', opacity: 1 };
+  if (count === 0) return { backgroundColor: 'var(--gs-heatmap-empty)' };
+  if (count <= 2)  return { backgroundColor: '#0e4429' };
+  if (count <= 5)  return { backgroundColor: '#006d32' };
+  if (count <= 10) return { backgroundColor: '#26a641' };
+  return              { backgroundColor: '#39d353' };
 }
 
 /**
@@ -86,12 +87,12 @@ function ContributionHeatmap({ activityMap, loading }) {
           <span className="text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">Last 12 months</span>
         </div>
         <div className="overflow-x-auto">
-          <div className="inline-grid animate-pulse gap-[3px]" style={{ gridTemplateColumns: `28px repeat(${WEEKS}, 12px)`, gridTemplateRows: `16px repeat(7, 12px)` }}>
+          <div className="inline-grid animate-pulse gap-[3px]" style={{ gridTemplateColumns: `28px repeat(${WEEKS}, 13px)`, gridTemplateRows: `16px repeat(7, 13px)` }}>
             {Array.from({ length: WEEKS + 1 }).map((_, i) => (
               <div key={i} className="h-4 rounded bg-[var(--gs-border)]" style={{ opacity: 0.3 }} />
             ))}
             {Array.from({ length: WEEKS * DAYS_IN_WEEK }).map((_, i) => (
-              <div key={`cell-${i}`} className="h-3 w-3 rounded-sm bg-[var(--gs-border)]" style={{ opacity: 0.3 }} />
+              <div key={`cell-${i}`} className="h-3.5 w-3.5 rounded-sm bg-[var(--gs-border)]" style={{ opacity: 0.3 }} />
             ))}
           </div>
         </div>
@@ -174,7 +175,7 @@ function ContributionHeatmap({ activityMap, loading }) {
                     return (
                       <div
                         key={rowIdx}
-                        className="h-[12px] w-[12px] cursor-pointer rounded-sm transition-transform hover:scale-125"
+                        className="h-[13px] w-[13px] cursor-pointer rounded-sm transition-transform hover:scale-125"
                         style={isFuture ? { backgroundColor: 'transparent' } : cellStyle}
                         onMouseEnter={(e) => {
                           if (!dateStr || isFuture) return;

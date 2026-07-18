@@ -169,20 +169,22 @@ export default function AchievementBadges({ profile, repos, eventTimestamps, loa
             style={{ animationDelay: `${index * 0.05}s` }}
             className={`group relative flex items-start gap-3 rounded-lg border p-3.5 transition-all duration-300 hover:scale-[1.02] animate-fade-in opacity-0 ${
               badge.earned
-                ? 'border-[var(--gs-accent)]/20 bg-[var(--gs-surface-alt)] shadow-sm'
+                ? 'border-[var(--gs-accent)]/30 bg-[var(--gs-surface)] shadow-sm'
                 : 'border-[var(--gs-border)] bg-[var(--gs-surface)] opacity-55'
             }`}
           >
             {/* Custom Floating Tooltip */}
             <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-48 -translate-x-1/2 scale-95 rounded bg-[var(--gs-surface)] border border-[var(--gs-border)] p-2 text-center text-[10px] text-[var(--gs-text)] shadow-lg opacity-0 transition-all duration-200 origin-bottom group-hover:opacity-100 group-hover:scale-100">
-              <div className={`font-semibold mb-0.5 ${badge.earned ? 'text-[var(--gs-success)]' : 'text-[var(--gs-text-secondary)]'}`}>
+              <div className={`font-semibold mb-0.5 ${badge.earned ? 'text-[var(--gs-accent)]' : 'text-[var(--gs-text-secondary)]'}`}>
                 {badge.earned ? 'Earned!' : 'Locked'}
               </div>
               {badge.earned ? badge.description : badge.requirement}
               {/* Tooltip Arrow */}
               <div className="absolute top-full left-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-[4px] rotate-45 border-b border-r border-[var(--gs-border)] bg-[var(--gs-surface)]" />
             </div>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-2xl shadow-sm">
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-2xl shadow-sm ${
+              badge.earned ? 'border-[var(--gs-accent)]/50 bg-[var(--gs-accent)]/10' : 'border-[var(--gs-border)] bg-[var(--gs-surface)]'
+            }`}>
               {badge.earned ? (
                 <span>{badge.emoji}</span>
               ) : (
