@@ -81,36 +81,51 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
   let theme = {
     name: 'Bronze',
     border: 'from-orange-700 via-amber-800 to-orange-900',
-    bg: 'from-slate-950 via-orange-950/20 to-slate-950',
+    borderHover: 'hover:shadow-[0_20px_50px_rgba(194,65,12,0.35)]',
+    bgImage: '/bronze_foil.png',
     text: 'text-orange-400',
-    badge: '🏆 Bronze Developer',
+    glowColor: 'rgba(194, 65, 12, 0.2)',
+    badgeName: 'Bronze Developer',
   };
 
   if (ovr >= 90) {
     theme = {
       name: 'TOTY',
       border: 'from-blue-600 via-cyan-400 to-indigo-600',
-      bg: 'from-slate-950 via-blue-950/90 to-purple-950/95',
+      borderHover: 'hover:shadow-[0_20px_50px_rgba(6,182,212,0.55)]',
+      bgImage: '/toty_foil.png',
       text: 'text-cyan-400',
-      badge: '✨ TOTY Icon',
+      glowColor: 'rgba(6, 182, 212, 0.4)',
+      badgeName: 'TOTY Icon',
     };
   } else if (ovr >= 80) {
     theme = {
       name: 'Gold',
       border: 'from-amber-500 via-yellow-300 to-amber-600',
-      bg: 'from-slate-900 via-amber-950/70 to-slate-950',
+      borderHover: 'hover:shadow-[0_20px_50px_rgba(245,158,11,0.55)]',
+      bgImage: '/gold_foil.png',
       text: 'text-yellow-400',
-      badge: '👑 Gold Class',
+      glowColor: 'rgba(245, 158, 11, 0.4)',
+      badgeName: 'Gold Class',
     };
   } else if (ovr >= 65) {
     theme = {
       name: 'Silver',
       border: 'from-slate-400 via-slate-200 to-slate-500',
-      bg: 'from-slate-900 via-slate-800/70 to-slate-950',
+      borderHover: 'hover:shadow-[0_20px_50px_rgba(148,163,184,0.45)]',
+      bgImage: '/silver_foil.png',
       text: 'text-slate-300',
-      badge: '⭐ Silver Class',
+      glowColor: 'rgba(148, 163, 184, 0.3)',
+      badgeName: 'Silver Class',
     };
   }
+
+  // Get color based on attribute value
+  const getStatColor = (val) => {
+    if (val > 85) return 'text-emerald-400';
+    if (val >= 70) return 'text-amber-400';
+    return 'text-rose-400';
+  };
 
   const handleDownload = async () => {
     if (!cardRef.current || downloading) return;
@@ -153,16 +168,16 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
       </button>
 
       {isOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-start sm:justify-center overflow-y-auto bg-black/85 backdrop-blur-md py-16 px-4 select-none">
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-start sm:justify-center overflow-y-auto bg-black/90 backdrop-blur-md py-16 px-4 select-none">
           {/* Controls Bar */}
           <div className="absolute top-6 right-6 flex gap-3 text-white z-50">
             <button
               type="button"
               onClick={handleDownload}
               disabled={downloading}
-              className="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white transition disabled:opacity-50"
+              className="inline-flex items-center gap-2 h-10 px-6 text-sm font-black rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-slate-950 shadow-[0_4px_20px_rgba(245,158,11,0.3)] hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50"
             >
-              <Download className="h-4.5 w-4.5 animate-bounce" />
+              <Download className="h-4.5 w-4.5" />
               <span>{downloading ? 'Exporting...' : 'Download Card'}</span>
             </button>
             
@@ -176,93 +191,121 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
           </div>
 
           {/* FIFA Player Card Container */}
-          <div className="flex flex-col items-center gap-6 mt-8 sm:mt-0">
+          <div className="flex flex-col items-center gap-6 mt-8 sm:mt-0 relative group fifa-card-container">
+            {/* Spotlight Radial Glow behind Card */}
+            <div
+              className="absolute inset-0 -z-10 rounded-full blur-3xl opacity-60 pointer-events-none transition-all duration-500 group-hover:scale-110"
+              style={{
+                background: `radial-gradient(circle, ${theme.glowColor} 0%, rgba(0,0,0,0) 70%)`,
+              }}
+            />
+
             <div
               ref={cardRef}
               style={{
                 clipPath: 'polygon(50% 0%, 100% 12%, 100% 80%, 50% 100%, 0% 80%, 0% 12%)',
               }}
-              className={`relative w-[320px] h-[460px] p-[3px] bg-gradient-to-b ${theme.border} shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden`}
+              className={`relative w-[320px] h-[460px] p-[2.5px] bg-gradient-to-b ${theme.border} shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-500 hover:-translate-y-2.5 ${theme.borderHover}`}
             >
               {/* Inner Shield */}
               <div
                 style={{
                   clipPath: 'polygon(50% 0%, 100% 12%, 100% 80%, 50% 100%, 0% 80%, 0% 12%)',
+                  backgroundImage: `url(${theme.bgImage})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
                 }}
-                className={`relative w-full h-full bg-gradient-to-b ${theme.bg} p-6 flex flex-col justify-between overflow-hidden text-white`}
+                className="relative w-full h-full p-6 flex flex-col justify-between overflow-hidden text-white"
               >
-                {/* Shiny Diagonal Overlays */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/10 opacity-80 pointer-events-none" />
+                {/* Diagonal White/Shine Sweep Effect */}
+                <div className="card-shine" />
+
+                {/* Glossy Sheen Overlay */}
+                <div className="absolute top-0 left-0 w-full h-[150px] bg-gradient-to-br from-white/15 via-white/5 to-transparent -skew-y-12 origin-top-left pointer-events-none" />
 
                 {/* Card Header Info */}
                 <div className="flex justify-between items-start mt-6">
                   {/* Left-hand attributes column */}
-                  <div className="flex flex-col items-center space-y-1.5 pl-2 pt-2">
+                  <div className="flex flex-col items-start pl-3 pt-3 space-y-0.5">
                     <div className="text-5xl font-black tracking-tighter leading-none">{ovr}</div>
                     <div className={`text-xs font-black tracking-widest uppercase opacity-90 ${theme.text}`}>{position}</div>
-                    <div className="h-[2px] w-6 bg-white/25 my-0.5" />
-                    <div className="text-2xl" title={profile.location || 'Global'}>{flag}</div>
-                    <div className="h-[2px] w-6 bg-white/25 my-0.5" />
-                    <div
-                      className="flex items-center justify-center h-6 w-6 rounded-full bg-white/10 border border-white/20 text-[9px] font-extrabold uppercase text-white/90"
-                      title={`Main language: ${mainLang}`}
-                    >
-                      {mainLang.substring(0, 2)}
+                    
+                    {/* Divider line */}
+                    <div className="h-[1.5px] w-8 bg-white/20 my-1" />
+                    
+                    {/* Flag and Language emblem side-by-side */}
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-xl leading-none" title={profile.location || 'Global'}>{flag}</span>
+                      <span
+                        className="flex items-center justify-center h-5 w-5 rounded-full bg-white/10 border border-white/20 text-[8px] font-extrabold uppercase text-white/90"
+                        title={`Main language: ${mainLang}`}
+                      >
+                        {mainLang.substring(0, 2)}
+                      </span>
                     </div>
                   </div>
 
                   {/* Player Profile Photo */}
                   <div className="relative pr-2 pt-2">
-                    <div className="h-28 w-28 rounded-full border-2 border-white/25 overflow-hidden shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)] ring-4 ring-black/35">
+                    {/* circular cutout, thin gold ring border + subtle inner shadow */}
+                    <div className="h-32 w-32 rounded-full border border-amber-500/35 overflow-hidden shadow-[inset_0_4px_12px_rgba(0,0,0,0.8)] relative ring-2 ring-black/45 bg-transparent">
                       <img
                         src={avatarUrl}
                         alt={profile.login}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover relative z-10"
                         crossOrigin="anonymous"
                       />
+                      <div className="absolute inset-0 shadow-[inset_0_4px_12px_rgba(0,0,0,0.9)] z-20 pointer-events-none rounded-full" />
                     </div>
                   </div>
                 </div>
 
                 {/* Center Name Block */}
-                <div className="text-center mt-2">
-                  <div className="text-xl font-black tracking-[0.2em] uppercase border-b border-white/20 pb-1.5 max-w-[200px] mx-auto truncate">
+                <div className="text-center mt-3">
+                  <div className="text-xl font-black tracking-[0.25em] uppercase border-b border-white/20 pb-1.5 max-w-[210px] mx-auto truncate text-white shadow-sm">
                     {profile.name ? profile.name.split(' ')[0] : profile.login}
                   </div>
                 </div>
 
-                {/* Bottom Attribute Matrix */}
-                <div className="grid grid-cols-2 gap-x-8 gap-y-2 px-6 mb-8 text-xs font-semibold">
-                  <div className="flex justify-between border-r border-white/15 pr-4">
-                    <span className="text-white/50 tracking-wider">PAC</span>
-                    <span className={`font-black ${theme.text}`}>{pac}</span>
+                {/* Single horizontal stats section row */}
+                <div className="grid grid-cols-6 gap-0 px-1 mb-8 text-center">
+                  <div className="flex flex-col items-center border-r border-white/10">
+                    <span className="text-[9px] font-black text-white/55 tracking-wider">PAC</span>
+                    <span className={`text-sm font-black mt-0.5 ${getStatColor(pac)}`}>{pac}</span>
                   </div>
-                  <div className="flex justify-between pl-4">
-                    <span className="text-white/50 tracking-wider">DRI</span>
-                    <span className={`font-black ${theme.text}`}>{dri}</span>
+                  <div className="flex flex-col items-center border-r border-white/10">
+                    <span className="text-[9px] font-black text-white/55 tracking-wider">DRI</span>
+                    <span className={`text-sm font-black mt-0.5 ${getStatColor(dri)}`}>{dri}</span>
                   </div>
-                  <div className="flex justify-between border-r border-white/15 pr-4">
-                    <span className="text-white/50 tracking-wider">SHO</span>
-                    <span className={`font-black ${theme.text}`}>{sho}</span>
+                  <div className="flex flex-col items-center border-r border-white/10">
+                    <span className="text-[9px] font-black text-white/55 tracking-wider">SHO</span>
+                    <span className={`text-sm font-black mt-0.5 ${getStatColor(sho)}`}>{sho}</span>
                   </div>
-                  <div className="flex justify-between pl-4">
-                    <span className="text-white/50 tracking-wider">DEF</span>
-                    <span className={`font-black ${theme.text}`}>{def}</span>
+                  <div className="flex flex-col items-center border-r border-white/10">
+                    <span className="text-[9px] font-black text-white/55 tracking-wider">DEF</span>
+                    <span className={`text-sm font-black mt-0.5 ${getStatColor(def)}`}>{def}</span>
                   </div>
-                  <div className="flex justify-between border-r border-white/15 pr-4">
-                    <span className="text-white/50 tracking-wider">PAS</span>
-                    <span className={`font-black ${theme.text}`}>{pas}</span>
+                  <div className="flex flex-col items-center border-r border-white/10">
+                    <span className="text-[9px] font-black text-white/55 tracking-wider">PAS</span>
+                    <span className={`text-sm font-black mt-0.5 ${getStatColor(pas)}`}>{pas}</span>
                   </div>
-                  <div className="flex justify-between pl-4">
-                    <span className="text-white/50 tracking-wider">PHY</span>
-                    <span className={`font-black ${theme.text}`}>{phy}</span>
+                  <div className="flex flex-col items-center">
+                    <span className="text-[9px] font-black text-white/55 tracking-wider">PHY</span>
+                    <span className={`text-sm font-black mt-0.5 ${getStatColor(phy)}`}>{phy}</span>
                   </div>
                 </div>
 
-                {/* Card Type Badge */}
-                <div className="text-center text-[9px] font-black tracking-[0.25em] text-white/40 mb-3 uppercase flex items-center justify-center gap-1.5">
-                  <span>{theme.badge}</span>
+                {/* Card Type Badge & Watermark */}
+                <div className="flex flex-col items-center space-y-1 mb-3">
+                  <div className="flex items-center gap-1 text-[9px] font-black tracking-[0.2em] text-white/55 uppercase">
+                    <Sparkles className={`h-3 w-3 ${theme.text} animate-pulse`} />
+                    <span>{theme.badgeName}</span>
+                  </div>
+                  <div className="text-[8px] font-bold tracking-[0.25em] text-white/30 uppercase">
+                    SANKETCHAUDHARI.IN
+                  </div>
                 </div>
+
               </div>
             </div>
           </div>
