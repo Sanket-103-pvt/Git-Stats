@@ -15,6 +15,17 @@
     --gs-success: #ff6b35;
     --gs-warning: #ff6b35;
     --gs-error: #f85149;
+
+    /* Stat boxes */
+    --gs-stat-bg: #0c0c0c;
+    --gs-stat-border: #2a2a2a;
+
+    /* Heatmap empty cells */
+    --gs-heatmap-empty: #222;
+
+    /* Hover accent colors */
+    --gs-accent-hover-bg: rgba(255, 107, 53, 0.1);
+    --gs-accent-hover-border: rgba(255, 107, 53, 0.6);
   }
 
   html.dark {
@@ -29,20 +40,42 @@
     --gs-success: #ff6b35;
     --gs-warning: #ff6b35;
     --gs-error: #f85149;
+
+    /* Stat boxes */
+    --gs-stat-bg: #0c0c0c;
+    --gs-stat-border: #2a2a2a;
+
+    /* Heatmap empty cells */
+    --gs-heatmap-empty: #222;
+
+    /* Hover accent colors */
+    --gs-accent-hover-bg: rgba(255, 107, 53, 0.1);
+    --gs-accent-hover-border: rgba(255, 107, 53, 0.6);
   }
 
   html:not(.dark) {
     color-scheme: light;
-    --gs-bg: #ffffff;
-    --gs-surface: #f6f8fa;
-    --gs-surface-alt: #ffffff;
-    --gs-border: #d0d7de;
-    --gs-text: #1f2328;
-    --gs-text-secondary: #656d76;
-    --gs-accent: #ff6b35;
-    --gs-success: #ff6b35;
-    --gs-warning: #ff6b35;
+    --gs-bg: #fafafa;
+    --gs-surface: #ffffff;
+    --gs-surface-alt: #fafafa;
+    --gs-border: #e5e5e5;
+    --gs-text: #171717;
+    --gs-text-secondary: #6b6b6b;
+    --gs-accent: #ea580c;
+    --gs-success: #ea580c;
+    --gs-warning: #ea580c;
     --gs-error: #cf222e;
+
+    /* Stat boxes */
+    --gs-stat-bg: #f5f5f5;
+    --gs-stat-border: #e0e0e0;
+
+    /* Heatmap empty cells */
+    --gs-heatmap-empty: #ebedf0;
+
+    /* Hover accent colors */
+    --gs-accent-hover-bg: rgba(234, 88, 12, 0.1);
+    --gs-accent-hover-border: rgba(234, 88, 12, 0.6);
   }
 
   html {

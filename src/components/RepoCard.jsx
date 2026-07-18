@@ -65,7 +65,7 @@ function RepoCard({ repo, loading, index = 0 }) {
   return (
     <article
       style={{ animationDelay: `${index * 0.05}s` }}
-      className="panel p-5 transition-all duration-200 hover:border-[#ff6b35]/65 hover:bg-[#0c0c0c] hover:-translate-y-[2px] animate-fade-in-up opacity-0"
+      className="panel p-5 transition-all duration-200 hover:border-[var(--gs-accent)]/65 hover:bg-[var(--gs-bg)] hover:-translate-y-[2px] animate-fade-in-up opacity-0"
     >
       <div className="flex items-start justify-between gap-4">
         <a

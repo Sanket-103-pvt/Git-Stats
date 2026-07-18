@@ -3,13 +3,13 @@ import useCountUp, { formatStatValue } from '../hooks/useCountUp';
 
 function StatBlock({ label, value, loading }) {
   if (loading) {
-    return <div className="h-20 rounded-lg border border-[#2a2a2a] bg-[#0c0c0c] animate-pulse" />;
+    return <div className="h-20 rounded-lg border border-[var(--gs-stat-border)] bg-[var(--gs-stat-bg)] animate-pulse" />;
   }
 
   return (
-    <div className="rounded-lg border border-[#2a2a2a] bg-[#0c0c0c] px-4 py-3">
-      <div className="text-[11px] uppercase tracking-[0.18em] font-medium text-[#8a8a8a]">{label}</div>
-      <div className="mt-2 text-lg font-bold text-[#e5e5e5]">{value}</div>
+    <div className="rounded-lg border border-[var(--gs-stat-border)] bg-[var(--gs-stat-bg)] px-4 py-3">
+      <div className="text-[11px] uppercase tracking-[0.18em] font-medium text-[var(--gs-text-secondary)]">{label}</div>
+      <div className="mt-2 text-lg font-bold text-[var(--gs-text)]">{value}</div>
     </div>
   );
 }

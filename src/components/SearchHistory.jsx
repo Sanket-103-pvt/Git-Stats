@@ -22,15 +22,15 @@ export default function SearchHistory({
               key={username}
               className={`group inline-flex items-center gap-1.5 rounded-full border pl-1.5 pr-2 py-0.5 transition animate-fade-in ${
                 isActive
-                  ? 'border-[#ff6b35] bg-[#1a1a1a] shadow-sm'
-                  : 'border-[#2a2a2a] bg-[#1a1a1a] hover:border-[#ff6b35]/65'
+                  ? 'border-[var(--gs-accent)] bg-[var(--gs-surface)] shadow-sm'
+                  : 'border-[var(--gs-border)] bg-[var(--gs-surface)] hover:border-[var(--gs-accent)]/65'
               }`}
             >
               <button
                 type="button"
                 onClick={() => onSelectHistory(username)}
                 className={`inline-flex items-center gap-1 font-semibold outline-none transition-colors ${
-                  isActive ? 'text-[#ff6b35]' : 'text-[#e5e5e5] hover:text-[#ff6b35]'
+                  isActive ? 'text-[var(--gs-accent)]' : 'text-[var(--gs-text)] hover:text-[var(--gs-accent)]'
                 }`}
               >
               <img

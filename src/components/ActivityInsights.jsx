@@ -167,7 +167,7 @@ export default function ActivityInsights({ eventTimestamps, loading }) {
                   return (
                     <Cell
                       key={`cell-${index}`}
-                      fill={isMax ? '#ff6b35' : '#3a3a3a'}
+                      fill={isMax ? 'var(--gs-accent)' : 'var(--gs-border)'}
                     />
                   );
                 })}
