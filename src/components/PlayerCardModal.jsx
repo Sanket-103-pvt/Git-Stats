@@ -158,20 +158,41 @@ export default function PlayerCardModal({ profile, repos, activityMap, eventTime
     archetype = 'PLAYMAKER';
   }
 
-  // Flavor Text
-  let flavorText = "ONE TO WATCH — the playmaker: coordinating modules and balancing architectures.";
+  // Coder Personality Insight Calculations
+  let insight = {
+    title: "THE SYSTEM PLAYMAKER",
+    desc: "All-Rounder: Easily manages multiple modules, architectures, and features."
+  };
   if (patternData.pattern === 'Night Owl' && dri > 80) {
-    flavorText = "NOCTURNAL ARCHITECT — debugging under moonlight: writing clean abstractions when the world sleeps.";
+    insight = {
+      title: "NOCTURNAL ARCHITECT",
+      desc: "Late-Night Coding Wizard: Writes clean, complex code when the world sleeps."
+    };
   } else if (patternData.pattern === 'Early Bird' && pac > 80) {
-    flavorText = "DISCIPLINED ENGINE — early morning velocity: shipping features before the stand-up call.";
+    insight = {
+      title: "DISCIPLINED ENGINE",
+      desc: "Morning Runner: Ships features with high speed and discipline before the day starts."
+    };
   } else if (archetype === 'FANTASISTA') {
-    flavorText = "ONE TO WATCH — the magician: a polyglot wizard weaving through many stacks.";
+    insight = {
+      title: "THE MAGICIAN",
+      desc: "Creative Playmaker: Builds beautiful full-stack features using a wide range of technologies."
+    };
   } else if (archetype === 'THE WALL') {
-    flavorText = "SECURE GUARD — the wall: protecting production and refactoring legacy systems.";
+    insight = {
+      title: "THE CODE GUARDIAN",
+      desc: "Infrastructure protector: Keeps the codebase safe, clean, and highly stable."
+    };
   } else if (archetype === 'SNIPER') {
-    flavorText = "THE FINISHER — precise execution: driving stars, clean codebases, and high impact.";
+    insight = {
+      title: "THE FEATURE FINISHER",
+      desc: "Precise executor: Delivers high-impact features and earns stars on top repositories."
+    };
   } else if (archetype === 'SPEEDSTER') {
-    flavorText = "THE ENGINE — relentless pace: pushing features and shipping updates rapidly.";
+    insight = {
+      title: "THE SPEED DEMON",
+      desc: "Fast Shipper: Relentlessly pushes updates and codes at an extreme speed."
+    };
   }
 
   // Playstyles List
@@ -404,9 +425,18 @@ export default function PlayerCardModal({ profile, repos, activityMap, eventTime
                 </div>
               </div>
 
-              {/* Flavor Text Block */}
-              <div className="md:max-w-md bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 text-xs font-medium text-slate-300 italic">
-                {flavorText}
+              {/* Coder Personality Insight Box */}
+              <div className={`md:max-w-md ${theme.btnBg} border ${theme.btnBorder} rounded-xl p-4 shadow-lg animate-fade-in-up duration-500`}>
+                <div className="flex items-center gap-1.5 text-[9px] font-black tracking-widest text-slate-400 uppercase">
+                  <Sparkles className={`h-3 w-3 ${theme.text} animate-pulse`} />
+                  <span>CODER PERSONALITY INSIGHT</span>
+                </div>
+                <h3 className={`text-sm font-black tracking-wide uppercase mt-1 ${theme.text}`}>
+                  {insight.title}
+                </h3>
+                <p className="text-xs font-medium text-slate-200 mt-1 leading-relaxed">
+                  {insight.desc}
+                </p>
               </div>
             </div>
 
