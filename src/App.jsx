@@ -849,7 +849,6 @@ function App() {
 
         {profile && !compareMode ? (
           <div className="pb-2 text-right text-[11px] uppercase tracking-[0.2em] text-[var(--gs-text-secondary)]">
-            Account age: {getAccountAgeYears(profile.created_at)} years
           </div>
         ) : null}
       </main>
