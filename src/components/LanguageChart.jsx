@@ -1,7 +1,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { getLanguageCounts } from '../lib/repoStats';
 
-const COLORS = ['#58A6FF', '#3FB950', '#F0883E', '#A371F7', '#D29922', '#F85149', '#7EE787', '#79C0FF'];
+const COLORS = ['var(--gs-accent)', '#58A6FF', '#3FB950', '#A371F7', '#D29922', '#F85149', '#7EE787', '#79C0FF'];
 
 function buildLanguageData(repos) {
   const counts = getLanguageCounts(repos);

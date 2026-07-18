@@ -5,44 +5,77 @@
 @layer base {
   :root {
     color-scheme: dark;
-    --gs-bg: #0d1117;
-    --gs-surface: #161b22;
-    --gs-surface-alt: #0d1117;
-    --gs-border: #30363d;
-    --gs-text: #e6edf3;
-    --gs-text-secondary: #8b949e;
-    --gs-accent: #58a6ff;
-    --gs-success: #3fb950;
-    --gs-warning: #d29922;
+    --gs-bg: #0c0c0c;
+    --gs-surface: #1a1a1a;
+    --gs-surface-alt: #0c0c0c;
+    --gs-border: #2a2a2a;
+    --gs-text: #e5e5e5;
+    --gs-text-secondary: #8a8a8a;
+    --gs-accent: #ff6b35;
+    --gs-success: #ff6b35;
+    --gs-warning: #ff6b35;
     --gs-error: #f85149;
+
+    /* Stat boxes */
+    --gs-stat-bg: #222222;
+    --gs-stat-border: #333333;
+
+    /* Heatmap empty cells */
+    --gs-heatmap-empty: #222;
+
+    /* Hover accent colors */
+    --gs-accent-hover-bg: rgba(255, 107, 53, 0.1);
+    --gs-accent-hover-border: rgba(255, 107, 53, 0.6);
   }
 
   html.dark {
     color-scheme: dark;
-    --gs-bg: #0d1117;
-    --gs-surface: #161b22;
-    --gs-surface-alt: #0d1117;
-    --gs-border: #30363d;
-    --gs-text: #e6edf3;
-    --gs-text-secondary: #8b949e;
-    --gs-accent: #58a6ff;
-    --gs-success: #3fb950;
-    --gs-warning: #d29922;
+    --gs-bg: #0c0c0c;
+    --gs-surface: #1a1a1a;
+    --gs-surface-alt: #0c0c0c;
+    --gs-border: #2a2a2a;
+    --gs-text: #e5e5e5;
+    --gs-text-secondary: #8a8a8a;
+    --gs-accent: #ff6b35;
+    --gs-success: #ff6b35;
+    --gs-warning: #ff6b35;
     --gs-error: #f85149;
+
+    /* Stat boxes */
+    --gs-stat-bg: #222222;
+    --gs-stat-border: #333333;
+
+    /* Heatmap empty cells */
+    --gs-heatmap-empty: #222;
+
+    /* Hover accent colors */
+    --gs-accent-hover-bg: rgba(255, 107, 53, 0.1);
+    --gs-accent-hover-border: rgba(255, 107, 53, 0.6);
   }
 
   html:not(.dark) {
     color-scheme: light;
-    --gs-bg: #ffffff;
-    --gs-surface: #f6f8fa;
-    --gs-surface-alt: #ffffff;
-    --gs-border: #d0d7de;
-    --gs-text: #1f2328;
-    --gs-text-secondary: #656d76;
-    --gs-accent: #0969da;
-    --gs-success: #1a7f37;
-    --gs-warning: #9a6700;
+    --gs-bg: #fafafa;
+    --gs-surface: #ffffff;
+    --gs-surface-alt: #fafafa;
+    --gs-border: #e5e5e5;
+    --gs-text: #171717;
+    --gs-text-secondary: #6b6b6b;
+    --gs-accent: #ea580c;
+    --gs-success: #ea580c;
+    --gs-warning: #ea580c;
     --gs-error: #cf222e;
+
+    /* Stat boxes */
+    --gs-stat-bg: #f0f0f0;
+    --gs-stat-border: #e0e0e0;
+
+    /* Heatmap empty cells */
+    --gs-heatmap-empty: #ebedf0;
+
+    /* Hover accent colors */
+    --gs-accent-hover-bg: rgba(234, 88, 12, 0.1);
+    --gs-accent-hover-border: rgba(234, 88, 12, 0.6);
   }
 
   html {

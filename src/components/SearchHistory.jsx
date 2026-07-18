@@ -22,8 +22,8 @@ export default function SearchHistory({
               key={username}
               className={`group inline-flex items-center gap-1.5 rounded-full border pl-1.5 pr-2 py-0.5 transition animate-fade-in ${
                 isActive
-                  ? 'border-[var(--gs-accent)] bg-[var(--gs-accent)]/10 shadow-sm'
-                  : 'border-[var(--gs-border)] bg-[var(--gs-surface)] hover:border-[var(--gs-accent)]/55 hover:bg-[var(--gs-surface-alt)]'
+                  ? 'border-[var(--gs-accent)] bg-[var(--gs-surface)] shadow-sm'
+                  : 'border-[var(--gs-border)] bg-[var(--gs-surface)] hover:border-[var(--gs-accent)]/65'
               }`}
             >
               <button

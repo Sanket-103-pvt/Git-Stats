@@ -297,10 +297,10 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, activit
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border border-[var(--gs-accent)]/20 bg-[var(--gs-accent)]/5 text-[var(--gs-accent)] hover:bg-[var(--gs-accent)]/10 transition animate-fade-in"
+        className="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] transition animate-fade-in"
       >
         <Sparkles className="h-4.5 w-4.5" />
-        <span>Wrapped 🎁</span>
+        <span>Wrapped</span>
       </button>
 
       {isOpen && createPortal(

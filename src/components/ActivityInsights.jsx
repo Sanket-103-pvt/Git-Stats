@@ -1,4 +1,4 @@
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 
 // NOTE: Events API only returns the last 90 days of public activity.
 // This component analyzes event timestamps to determine activity patterns.
@@ -161,7 +161,17 @@ export default function ActivityInsights({ eventTimestamps, loading }) {
                   fontSize: '12px',
                 }}
               />
-              <Bar dataKey="events" fill="var(--gs-accent)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="events" radius={[4, 4, 0, 0]}>
+                {dayData.map((entry, index) => {
+                  const isMax = entry.events === maxDayCount;
+                  return (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={isMax ? 'var(--gs-accent)' : 'var(--gs-border)'}
+                    />
+                  );
+                })}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
