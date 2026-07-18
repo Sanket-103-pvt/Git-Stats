@@ -616,6 +616,7 @@ function App() {
                   profile={profile}
                   repos={repos}
                   activityMap={activityMap}
+                  eventTimestamps={eventTimestamps}
                 />
               </div>
             )}

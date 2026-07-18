@@ -12,11 +12,15 @@ import {
   Shield, 
   Globe,
   Award,
-  Star
+  Star,
+  Clock,
+  Moon,
+  Sun,
+  Activity
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
-export default function PlayerCardModal({ profile, repos, activityMap }) {
+export default function PlayerCardModal({ profile, repos, activityMap, eventTimestamps }) {
   const [isOpen, setIsOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const cardRef = useRef(null);
@@ -58,29 +62,69 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
   // Mapped/Derived Scouting Metrics
   const skillMoves = Math.min(5, Math.max(1, Math.round(ovr / 20)));
 
-  // Weak Foot (consistency based on stat variance)
-  const statsList = [pac, sho, pas, dri, def, phy];
-  const mean = statsList.reduce((a, b) => a + b, 0) / 6;
-  const variance = statsList.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / 6;
-  let weakFoot = 3;
-  if (variance < 25) {
-    weakFoot = 5;
-  } else if (variance < 50) {
-    weakFoot = 4;
-  } else if (variance < 100) {
-    weakFoot = 3;
-  } else if (variance < 200) {
-    weakFoot = 2;
-  } else {
-    weakFoot = 1;
-  }
+  // Contribution pattern logic based on events/commits hours
+  const getContributionPattern = (timestamps) => {
+    if (!timestamps || timestamps.length < 10) {
+      return { pattern: 'Balanced', percentage: 0, icon: Globe };
+    }
+    
+    let nightCount = 0;
+    let earlyCount = 0;
+    let dayCount = 0;
+    let eveningCount = 0;
+    
+    for (const ts of timestamps) {
+      const date = new Date(ts);
+      const hr = date.getHours(); // Local timezone hour
+      
+      if (hr >= 22 || hr < 5) {
+        nightCount++;
+      } else if (hr >= 5 && hr < 9) {
+        earlyCount++;
+      } else if (hr >= 9 && hr < 18) {
+        dayCount++;
+      } else {
+        eveningCount++;
+      }
+    }
+    
+    const total = timestamps.length;
+    const patterns = [
+      { name: 'Night Owl', count: nightCount, icon: Moon, desc: 'commits between 10 PM and 5 AM' },
+      { name: 'Early Bird', count: earlyCount, icon: Sun, desc: 'commits between 5 AM and 9 AM' },
+      { name: 'Day Grinder', count: dayCount, icon: Activity, desc: 'commits between 9 AM and 6 PM' },
+      { name: 'Evening Coder', count: eveningCount, icon: Clock, desc: 'commits between 6 PM and 10 PM' },
+    ];
+    
+    patterns.sort((a, b) => b.count - a.count);
+    const topPattern = patterns[0];
+    const pct = Math.round((topPattern.count / total) * 100);
+    
+    return {
+      pattern: topPattern.name,
+      percentage: pct,
+      icon: topPattern.icon,
+      desc: `${topPattern.name} — ${pct}% of ${topPattern.desc}.`
+    };
+  };
 
-  // Work Rate
+  const patternData = getContributionPattern(eventTimestamps);
+
+  // Work Rate Calculations
   const attackRate = pac > 75 ? 'HIGH' : pac > 60 ? 'MED' : 'LOW';
-  const defenseRate = def > 75 ? 'HIGH' : def > 60 ? 'MED' : 'LOW';
+  
+  // Defensive work rate derived from consistency/variance of commit hours
+  let defenseRate = 'MED';
+  if (eventTimestamps && eventTimestamps.length >= 10) {
+    const hours = eventTimestamps.map(ts => new Date(ts).getHours());
+    const meanHr = hours.reduce((a, b) => a + b, 0) / hours.length;
+    const varHr = hours.reduce((a, b) => a + Math.pow(b - meanHr, 2), 0) / hours.length;
+    defenseRate = varHr < 16 ? 'HIGH' : varHr < 36 ? 'MED' : 'LOW';
+  }
   const workRate = `${attackRate} / ${defenseRate}`;
 
   // Style Tag
+  const statsList = [pac, sho, pas, dri, def, phy];
   const maxStat = Math.max(...statsList);
   const minStat = Math.min(...statsList);
   let styleTag = 'BALANCED';
@@ -116,7 +160,11 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
 
   // Flavor Text
   let flavorText = "ONE TO WATCH — the playmaker: coordinating modules and balancing architectures.";
-  if (archetype === 'FANTASISTA') {
+  if (patternData.pattern === 'Night Owl' && dri > 80) {
+    flavorText = "NOCTURNAL ARCHITECT — debugging under moonlight: writing clean abstractions when the world sleeps.";
+  } else if (patternData.pattern === 'Early Bird' && pac > 80) {
+    flavorText = "DISCIPLINED ENGINE — early morning velocity: shipping features before the stand-up call.";
+  } else if (archetype === 'FANTASISTA') {
     flavorText = "ONE TO WATCH — the magician: a polyglot wizard weaving through many stacks.";
   } else if (archetype === 'THE WALL') {
     flavorText = "SECURE GUARD — the wall: protecting production and refactoring legacy systems.";
@@ -128,6 +176,16 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
 
   // Playstyles List
   const playstyles = [];
+  
+  // Prepend detected timezone pattern playstyle if available
+  if (patternData.pattern !== 'Balanced') {
+    playstyles.push({
+      name: patternData.pattern,
+      desc: patternData.desc,
+      icon: patternData.icon
+    });
+  }
+
   if (uniqueLangsCount > 3) {
     playstyles.push({ name: 'Polyglot', desc: 'Working across multiple stacks', icon: Globe });
   }
@@ -371,16 +429,6 @@ export default function PlayerCardModal({ profile, repos, activityMap }) {
                       <div className="flex text-amber-400 text-xs tracking-widest">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star key={i} className={`h-3 w-3 ${i < skillMoves ? 'fill-current' : 'opacity-20'}`} />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Weak Foot */}
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-400 font-medium">Weak Foot</span>
-                      <div className="flex text-amber-400 text-xs tracking-widest">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className={`h-3 w-3 ${i < weakFoot ? 'fill-current' : 'opacity-20'}`} />
                         ))}
                       </div>
                     </div>
