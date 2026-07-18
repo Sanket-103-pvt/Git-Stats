@@ -622,78 +622,46 @@ export default function PlayerCardModal({ profile, repos, activityMap, eventTime
                 </div>
 
                 {/* Actions Grid */}
-                <div className="w-full max-w-[320px] space-y-3">
-                  
-                  {/* Share Socials & Download Row */}
-                  <div className="grid grid-cols-[48px_48px_1fr] gap-3 w-full">
-                    <a
-                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out my GitHub FUT Player Card! OVR: ${ovr}, Position: ${position}. Generate yours at GitStats.`)}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-center h-12 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition"
+                <div className="w-full max-w-[320px]">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      disabled={downloading}
+                      className="w-full flex items-center justify-between px-4 h-12 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 transition font-bold text-sm"
                     >
-                      <Twitter className="h-5 w-5" />
-                    </a>
-                    
-                    <a
-                      href="https://linkedin.com"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-center h-12 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition"
-                    >
-                      <Linkedin className="h-5 w-5" />
-                    </a>
+                      <span className="flex items-center gap-2">
+                        <Download className="h-4 w-4" />
+                        <span>{downloading ? 'Exporting...' : 'Download Card'}</span>
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </button>
 
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        disabled={downloading}
-                        className="w-full flex items-center justify-between px-4 h-12 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 transition font-bold text-sm"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Download className="h-4 w-4" />
-                          <span>{downloading ? 'Exporting...' : 'Download Card'}</span>
-                        </span>
-                        <ChevronDown className="h-4 w-4 opacity-50" />
-                      </button>
-
-                      {isDropdownOpen && (
-                        <div className="absolute bottom-full mb-2 right-0 w-44 rounded-xl bg-slate-900 border border-slate-800 shadow-xl py-1.5 z-50 animate-fade-in text-xs font-semibold">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleDownload('png');
-                              setIsDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-200 hover:text-white transition-colors"
-                          >
-                            Download as PNG
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleDownload('jpeg');
-                              setIsDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-200 hover:text-white transition-colors"
-                          >
-                            Download as JPEG
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    {isDropdownOpen && (
+                      <div className="absolute bottom-full mb-2 left-0 w-full rounded-xl bg-slate-900 border border-slate-800 shadow-xl py-1.5 z-50 animate-fade-in text-xs font-semibold">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleDownload('png');
+                            setIsDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-200 hover:text-white transition-colors"
+                        >
+                          Download as PNG
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleDownload('jpeg');
+                            setIsDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-200 hover:text-white transition-colors"
+                        >
+                          Download as JPEG
+                        </button>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Duel a Rival Button */}
-                  <button
-                    type="button"
-                    className="w-full inline-flex items-center justify-center gap-2 h-11 text-xs font-bold uppercase rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition active:scale-95"
-                  >
-                    <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[9px] font-black text-rose-400">VS</span>
-                    <span>Duel a Rival</span>
-                  </button>
-
                 </div>
 
               </div>
