@@ -17,8 +17,8 @@
     --gs-error: #f85149;
 
     /* Stat boxes */
-    --gs-stat-bg: #0c0c0c;
-    --gs-stat-border: #2a2a2a;
+    --gs-stat-bg: #222222;
+    --gs-stat-border: #333333;
 
     /* Heatmap empty cells */
     --gs-heatmap-empty: #222;
@@ -42,8 +42,8 @@
     --gs-error: #f85149;
 
     /* Stat boxes */
-    --gs-stat-bg: #0c0c0c;
-    --gs-stat-border: #2a2a2a;
+    --gs-stat-bg: #222222;
+    --gs-stat-border: #333333;
 
     /* Heatmap empty cells */
     --gs-heatmap-empty: #222;
@@ -67,7 +67,7 @@
     --gs-error: #cf222e;
 
     /* Stat boxes */
-    --gs-stat-bg: #f5f5f5;
+    --gs-stat-bg: #f0f0f0;
     --gs-stat-border: #e0e0e0;
 
     /* Heatmap empty cells */

@@ -28,7 +28,7 @@ function toLocalDateString(date) {
  * Colours follow GitHub's green-square convention, mapped to CSS variables.
  */
 function getCellStyle(count) {
-  if (count === 0) return { backgroundColor: '#222' };
+  if (count === 0) return { backgroundColor: 'var(--gs-heatmap-empty)' };
   if (count <= 2)  return { backgroundColor: '#0e4429' };
   if (count <= 5)  return { backgroundColor: '#006d32' };
   if (count <= 10) return { backgroundColor: '#26a641' };
