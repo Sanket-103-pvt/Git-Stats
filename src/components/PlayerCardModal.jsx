@@ -23,6 +23,7 @@ import html2canvas from 'html2canvas';
 export default function PlayerCardModal({ profile, repos, activityMap, eventTimestamps }) {
   const [isOpen, setIsOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const cardRef = useRef(null);
 
   if (!profile) return null;
@@ -335,7 +336,7 @@ export default function PlayerCardModal({ profile, repos, activityMap, eventTime
     return 'text-rose-400';
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (format = 'png') => {
     if (!cardRef.current || downloading) return;
     try {
       setDownloading(true);
@@ -348,9 +349,12 @@ export default function PlayerCardModal({ profile, repos, activityMap, eventTime
         scale: 2, 
       });
       
+      const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+      const fileExt = format === 'jpeg' ? 'jpg' : 'png';
+      
       const link = document.createElement('a');
-      link.download = `${profile.login}-card.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.download = `${profile.login}-card.${fileExt}`;
+      link.href = canvas.toDataURL(mimeType, format === 'jpeg' ? 0.95 : undefined);
       link.click();
     } catch (err) {
       console.error('Failed to download card:', err);
@@ -620,22 +624,8 @@ export default function PlayerCardModal({ profile, repos, activityMap, eventTime
                 {/* Actions Grid */}
                 <div className="w-full max-w-[320px] space-y-3">
                   
-                  {/* Share My Card Button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const shareText = `Check out my GitHub Player Card! OVR: ${ovr}, Archetype: ${archetype}. Generated using GitStats.`;
-                      navigator.clipboard.writeText(shareText);
-                      alert('Share link copied to clipboard!');
-                    }}
-                    className="w-full inline-flex items-center justify-center gap-2 h-12 text-sm font-black uppercase rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 shadow-[0_4px_20px_rgba(16,185,129,0.3)] transition active:scale-95 duration-150"
-                  >
-                    <Sparkles className="h-4.5 w-4.5" />
-                    <span>Share My Card</span>
-                  </button>
-
-                  {/* Share Socials Row */}
-                  <div className="grid grid-cols-[48px_48px_1fr] gap-3">
+                  {/* Share Socials & Download Row */}
+                  <div className="grid grid-cols-[48px_48px_1fr] gap-3 w-full">
                     <a
                       href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out my GitHub FUT Player Card! OVR: ${ovr}, Position: ${position}. Generate yours at GitStats.`)}`}
                       target="_blank"
@@ -654,18 +644,45 @@ export default function PlayerCardModal({ profile, repos, activityMap, eventTime
                       <Linkedin className="h-5 w-5" />
                     </a>
 
-                    <button
-                      type="button"
-                      onClick={handleDownload}
-                      disabled={downloading}
-                      className="flex items-center justify-between px-4 h-12 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 transition font-bold text-sm"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Download className="h-4 w-4" />
-                        <span>{downloading ? 'Exporting...' : 'Download Card'}</span>
-                      </span>
-                      <ChevronDown className="h-4 w-4 opacity-50" />
-                    </button>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        disabled={downloading}
+                        className="w-full flex items-center justify-between px-4 h-12 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 transition font-bold text-sm"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Download className="h-4 w-4" />
+                          <span>{downloading ? 'Exporting...' : 'Download Card'}</span>
+                        </span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </button>
+
+                      {isDropdownOpen && (
+                        <div className="absolute bottom-full mb-2 right-0 w-44 rounded-xl bg-slate-900 border border-slate-800 shadow-xl py-1.5 z-50 animate-fade-in text-xs font-semibold">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleDownload('png');
+                              setIsDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-200 hover:text-white transition-colors"
+                          >
+                            Download as PNG
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleDownload('jpeg');
+                              setIsDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-200 hover:text-white transition-colors"
+                          >
+                            Download as JPEG
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Duel a Rival Button */}
