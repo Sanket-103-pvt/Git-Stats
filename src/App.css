@@ -185,6 +185,8 @@
 
 @media print {
   :root, html, body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
     color-scheme: light !important;
     --gs-bg: #ffffff !important;
     --gs-surface: #ffffff !important;
