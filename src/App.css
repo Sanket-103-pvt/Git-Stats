@@ -182,3 +182,59 @@
 .animate-glow-pulse {
   animation: glowPulse 2s infinite ease-in-out;
 }
+
+@media print {
+  :root, html, body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-scheme: light !important;
+    --gs-bg: #ffffff !important;
+    --gs-surface: #ffffff !important;
+    --gs-surface-alt: #fcfcfc !important;
+    --gs-border: #e5e5e5 !important;
+    --gs-text: #171717 !important;
+    --gs-text-secondary: #6b6b6b !important;
+    --gs-accent: #ea580c !important;
+    --gs-success: #ea580c !important;
+    --gs-warning: #ea580c !important;
+    --gs-error: #cf222e !important;
+    --gs-stat-bg: #f0f0f0 !important;
+    --gs-stat-border: #e0e0e0 !important;
+    --gs-heatmap-empty: #ebedf0 !important;
+    background-color: #ffffff !important;
+    color: #171717 !important;
+  }
+
+  /* Hide interactive or layout elements not needed in the printed report */
+  header,
+  form,
+  .search-hero-section,
+  [id^="search-hero-section"],
+  section.panel:has(form),
+  button {
+    display: none !important;
+  }
+
+  /* Prevent page split inside stats, achievements, and repo card panels */
+  .panel {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 1.5rem !important;
+    box-shadow: none !important;
+    background-color: var(--gs-surface) !important;
+    border-color: var(--gs-border) !important;
+  }
+
+  /* Ensure smooth margins and readable width */
+  body {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 1cm !important;
+  }
+
+  /* Make sure links are readable */
+  a {
+    text-decoration: none !important;
+    color: var(--gs-accent) !important;
+  }
+}
