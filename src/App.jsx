@@ -1,28 +1,38 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, ArrowUp, GitCompare, LoaderCircle, MoonStar, Printer, Search, SunMedium } from 'lucide-react';
-import ProfileCard from './components/ProfileCard';
-import StatsBar from './components/StatsBar';
-import LanguageChart from './components/LanguageChart';
-import RepoCard from './components/RepoCard';
-import CompareView from './components/CompareView';
-import RepoFilters from './components/RepoFilters';
-import AchievementBadges from './components/AchievementBadges';
-import ActivityInsights from './components/ActivityInsights';
-import GitHubWrapped from './components/GitHubWrapped';
-import PlayerCardModal from './components/PlayerCardModal';
-import ContributionHeatmap from './components/ContributionHeatmap';
-import SearchHistory from './components/SearchHistory';
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertCircle,
+  ArrowUp,
+  GitCompare,
+  LoaderCircle,
+  MoonStar,
+  Printer,
+  Search,
+  SunMedium,
+} from "lucide-react";
+import ProfileCard from "./components/ProfileCard";
+import StatsBar from "./components/StatsBar";
+import LanguageChart from "./components/LanguageChart";
+import RepoCard from "./components/RepoCard";
+import GistCard from "./components/GistCard";
+import CompareView from "./components/CompareView";
+import RepoFilters from "./components/RepoFilters";
+import AchievementBadges from "./components/AchievementBadges";
+import ActivityInsights from "./components/ActivityInsights";
+import GitHubWrapped from "./components/GitHubWrapped";
+import PlayerCardModal from "./components/PlayerCardModal";
+import ContributionHeatmap from "./components/ContributionHeatmap";
+import SearchHistory from "./components/SearchHistory";
 
-const THEME_KEY = 'gitstats-theme';
-const HISTORY_KEY = 'gitstats-history';
+const THEME_KEY = "gitstats-theme";
+const HISTORY_KEY = "gitstats-history";
 
 function getInitialTheme() {
-  if (typeof window === 'undefined') {
-    return 'dark';
+  if (typeof window === "undefined") {
+    return "dark";
   }
 
   const storedTheme = window.localStorage.getItem(THEME_KEY);
-  return storedTheme === 'light' ? 'light' : 'dark';
+  return storedTheme === "light" ? "light" : "dark";
 }
 
 // A request that never resolves — a stalled network, say — would otherwise leave the loading
@@ -35,7 +45,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 
 async function fetchGitHubJson(url) {
   const cacheKey = `gitstats_cache_${url.toLowerCase()}`;
-  
+
   try {
     const cachedItem = sessionStorage.getItem(cacheKey);
     if (cachedItem) {
@@ -46,10 +56,10 @@ async function fetchGitHubJson(url) {
       }
     }
   } catch (cacheReadError) {
-    console.warn('Failed to read from cache storage:', cacheReadError);
+    console.warn("Failed to read from cache storage:", cacheReadError);
   }
 
-  let token = '';
+  let token = "";
   try {
     token = import.meta.env && import.meta.env.VITE_GITHUB_TOKEN;
   } catch {
@@ -62,10 +72,10 @@ async function fetchGitHubJson(url) {
   let response;
   try {
     const headers = {
-      Accept: 'application/vnd.github+json',
+      Accept: "application/vnd.github+json",
     };
-    if (token && typeof token === 'string' && token.trim() !== '') {
-      headers['Authorization'] = `Bearer ${token.trim()}`;
+    if (token && typeof token === "string" && token.trim() !== "") {
+      headers["Authorization"] = `Bearer ${token.trim()}`;
     }
 
     response = await fetch(url, {
@@ -73,8 +83,8 @@ async function fetchGitHubJson(url) {
       signal: controller.signal,
     });
   } catch (fetchError) {
-    if (fetchError.name === 'AbortError') {
-      const timeoutError = new Error('GitHub request timed out');
+    if (fetchError.name === "AbortError") {
+      const timeoutError = new Error("GitHub request timed out");
       timeoutError.isTimeout = true;
       throw timeoutError;
     }
@@ -85,7 +95,7 @@ async function fetchGitHubJson(url) {
 
   if (response.ok) {
     const data = await response.json();
-    
+
     try {
       const cacheData = {
         data: data,
@@ -93,18 +103,18 @@ async function fetchGitHubJson(url) {
       };
       sessionStorage.setItem(cacheKey, JSON.stringify(cacheData));
     } catch (cacheWriteError) {
-      console.warn('Failed to write to cache storage:', cacheWriteError);
+      console.warn("Failed to write to cache storage:", cacheWriteError);
     }
 
     return data;
   }
 
-  const error = new Error('GitHub request failed');
+  const error = new Error("GitHub request failed");
   error.status = response.status;
   error.body = await response.json().catch(() => null);
-  error.rateLimitRemaining = response.headers.get('x-ratelimit-remaining');
-  error.rateLimitReset = response.headers.get('x-ratelimit-reset');
-  error.retryAfter = response.headers.get('retry-after');
+  error.rateLimitRemaining = response.headers.get("x-ratelimit-remaining");
+  error.rateLimitReset = response.headers.get("x-ratelimit-reset");
+  error.retryAfter = response.headers.get("retry-after");
   throw error;
 }
 
@@ -115,29 +125,37 @@ const MAX_REPO_PAGES = 10;
 
 function reposPageUrl(username, page) {
   return `https://api.github.com/users/${encodeURIComponent(
-    username
+    username,
   )}/repos?per_page=100&sort=updated&page=${page}`;
+}
+
+function gistsPageUrl(username, page) {
+  return `https://api.github.com/users/${encodeURIComponent(
+    username,
+  )}/gists?per_page=100&page=${page}`;
 }
 
 function App() {
   const [theme, setTheme] = useState(getInitialTheme);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [profile, setProfile] = useState(null);
   const [repos, setRepos] = useState([]);
+  const [gists, setGists] = useState([]);
+  const [activeTab, setActiveTab] = useState("repos");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [searchedUsername, setSearchedUsername] = useState('');
+  const [searchedUsername, setSearchedUsername] = useState("");
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isThemeSpinning, setIsThemeSpinning] = useState(false);
 
   // Comparison Mode States
   const [compareMode, setCompareMode] = useState(false);
-  const [inputValue2, setInputValue2] = useState('');
+  const [inputValue2, setInputValue2] = useState("");
   const [profile2, setProfile2] = useState(null);
   const [repos2, setRepos2] = useState([]);
   const [loading2, setLoading2] = useState(false);
   const [error2, setError2] = useState(null);
-  const [searchedUsername2, setSearchedUsername2] = useState('');
+  const [searchedUsername2, setSearchedUsername2] = useState("");
 
   // activityMap: { 'YYYY-MM-DD': eventCount } built from the public Events API.
   // Note: GitHub's Events API only returns the last ~90 days of activity (up to
@@ -157,51 +175,52 @@ function App() {
   });
 
   const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState("");
 
   const requestIdRef = useRef(0);
 
   useEffect(() => {
     // Parse URL parameter on initial mount
     const params = new URLSearchParams(window.location.search);
-    const userParam = params.get('user');
+    const userParam = params.get("user");
     if (userParam) {
       setInputValue(userParam);
-      handleSearch(userParam, '', false);
+      handleSearch(userParam, "", false);
     }
 
     // Listen to popstate event for back/forward navigation
     function handlePopState() {
       const currentParams = new URLSearchParams(window.location.search);
-      const currentUser = currentParams.get('user');
+      const currentUser = currentParams.get("user");
       if (currentUser) {
         setInputValue(currentUser);
-        handleSearch(currentUser, '', false);
+        handleSearch(currentUser, "", false);
       } else {
-        setInputValue('');
+        setInputValue("");
         setProfile(null);
         setRepos([]);
-        setSearchedUsername('');
+        setGists([]);
+        setActiveTab("repos");
+        setSearchedUsername("");
         setActivityMap(null);
         setError(null);
-        document.title = 'GitStats';
+        document.title = "GitStats";
       }
     }
 
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener("popstate", handlePopState);
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener("popstate", handlePopState);
     };
     // Registers the popstate listener once on mount; handleSearch is intentionally omitted so the
     // listener isn't torn down and re-added on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [filterLanguage, setFilterLanguage] = useState('');
-  const [sortBy, setSortBy] = useState('stars');
+  const [filterLanguage, setFilterLanguage] = useState("");
+  const [sortBy, setSortBy] = useState("stars");
   const [isGridFading, setIsGridFading] = useState(false);
   const [displayRepos, setDisplayRepos] = useState([]);
-
 
   useEffect(() => {
     function handleScroll() {
@@ -212,21 +231,21 @@ function App() {
       }
     }
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   function scrollToTop() {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth',
+      behavior: "smooth",
     });
   }
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.classList.toggle("dark", theme === "dark");
     document.documentElement.style.colorScheme = theme;
     window.localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
@@ -248,13 +267,19 @@ function App() {
       result = result.filter((repo) => repo.language === filterLanguage);
     }
 
-    if (sortBy === 'stars') {
-      result.sort((left, right) => right.stargazers_count - left.stargazers_count);
-    } else if (sortBy === 'forks') {
+    if (sortBy === "stars") {
+      result.sort(
+        (left, right) => right.stargazers_count - left.stargazers_count,
+      );
+    } else if (sortBy === "forks") {
       result.sort((left, right) => right.forks_count - left.forks_count);
-    } else if (sortBy === 'updated') {
-      result.sort((left, right) => new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime());
-    } else if (sortBy === 'name') {
+    } else if (sortBy === "updated") {
+      result.sort(
+        (left, right) =>
+          new Date(right.updated_at).getTime() -
+          new Date(left.updated_at).getTime(),
+      );
+    } else if (sortBy === "name") {
       result.sort((left, right) => left.name.localeCompare(right.name));
     }
 
@@ -270,35 +295,57 @@ function App() {
     return () => clearTimeout(timer);
   }, [filteredRepos]);
 
-  const hasLanguageData = useMemo(() => repos.some((repo) => repo.language), [repos]);
+  const hasLanguageData = useMemo(
+    () => repos.some((repo) => repo.language),
+    [repos],
+  );
 
   async function fetchUserData(username) {
-    const [profileData, firstPage] = await Promise.all([
-      fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}`),
+    const [profileData, firstPage, firstGistsPage] = await Promise.all([
+      fetchGitHubJson(
+        `https://api.github.com/users/${encodeURIComponent(username)}`,
+      ),
       fetchGitHubJson(reposPageUrl(username, 1)),
+      fetchGitHubJson(gistsPageUrl(username, 1)),
     ]);
 
     let reposData = firstPage;
     const totalPages = Math.min(
       Math.ceil((profileData.public_repos || 0) / 100),
-      MAX_REPO_PAGES
+      MAX_REPO_PAGES,
     );
     if (totalPages > 1) {
       const remainingPages = await Promise.all(
         Array.from({ length: totalPages - 1 }, (_, index) =>
-          fetchGitHubJson(reposPageUrl(username, index + 2))
-        )
+          fetchGitHubJson(reposPageUrl(username, index + 2)),
+        ),
       );
       reposData = firstPage.concat(remainingPages.flat());
     }
 
-    return { profile: profileData, repos: reposData };
+    let gistsData = firstGistsPage;
+    const totalGistsPages = Math.min(
+      Math.ceil((profileData.public_gists || 0) / 100),
+      MAX_REPO_PAGES,
+    );
+    if (totalGistsPages > 1) {
+      const remainingGistsPages = await Promise.all(
+        Array.from({ length: totalGistsPages - 1 }, (_, index) =>
+          fetchGitHubJson(gistsPageUrl(username, index + 2)),
+        ),
+      );
+      gistsData = firstGistsPage.concat(remainingGistsPages.flat());
+    }
+
+    return { profile: profileData, repos: reposData, gists: gistsData };
   }
 
   const saveToHistory = (username) => {
     if (!username) return;
     setSearchHistory((prev) => {
-      const filtered = prev.filter((name) => name.toLowerCase() !== username.toLowerCase());
+      const filtered = prev.filter(
+        (name) => name.toLowerCase() !== username.toLowerCase(),
+      );
       const updated = [username, ...filtered].slice(0, 10);
       try {
         window.localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
@@ -322,20 +369,20 @@ function App() {
     }
 
     if (msUntilRetry === null || msUntilRetry <= 0) {
-      return 'Try again shortly.';
+      return "Try again shortly.";
     }
 
     const minutes = Math.ceil(msUntilRetry / 60000);
     if (minutes < 60) {
-      return `Try again in about ${minutes} minute${minutes === 1 ? '' : 's'}.`;
+      return `Try again in about ${minutes} minute${minutes === 1 ? "" : "s"}.`;
     }
     const hours = Math.ceil(minutes / 60);
-    return `Try again in about ${hours} hour${hours === 1 ? '' : 's'}.`;
+    return `Try again in about ${hours} hour${hours === 1 ? "" : "s"}.`;
   }
 
   function getErrorMessage(caughtError, username) {
     if (caughtError.isTimeout) {
-      return 'Request timed out. Check your connection and try again.';
+      return "Request timed out. Check your connection and try again.";
     }
     if (caughtError.status === 404) {
       return `User "${username}" not found. Check spelling.`;
@@ -343,21 +390,21 @@ function App() {
     if (caughtError.status === 403) {
       // 403 covers more than rate limiting. A real rate limit reports remaining === "0"; other 403s
       // (secondary limits, blocked requests) shouldn't claim the primary limit was hit.
-      if (caughtError.rateLimitRemaining === '0') {
+      if (caughtError.rateLimitRemaining === "0") {
         return `GitHub API rate limit reached. ${formatRetryHint(caughtError)}`;
       }
       if (caughtError.retryAfter) {
         return `GitHub temporarily blocked this request (secondary rate limit). ${formatRetryHint(caughtError)}`;
       }
-      return 'GitHub denied this request (403). If this persists, add a VITE_GITHUB_TOKEN to raise the rate limit.';
+      return "GitHub denied this request (403). If this persists, add a VITE_GITHUB_TOKEN to raise the rate limit.";
     }
-    return 'Network error. Check your connection and try again.';
+    return "Network error. Check your connection and try again.";
   }
 
   async function handleSearch(
     submittedUsername = inputValue,
     submittedUsername2 = inputValue2,
-    isCompare = compareMode
+    isCompare = compareMode,
   ) {
     const username = submittedUsername.trim();
     const username2 = submittedUsername2.trim();
@@ -376,13 +423,15 @@ function App() {
     setError(null);
     setProfile(null);
     setRepos([]);
+    setGists([]);
+    setActiveTab("repos");
     setSearchedUsername(username);
     setActivityMap(null);
     setEventTimestamps([]);
     setEventsLoading(true);
-    setFilterLanguage('');
-    setSortBy('stars');
-    document.title = 'GitStats';
+    setFilterLanguage("");
+    setSortBy("stars");
+    document.title = "GitStats";
 
     if (isCompare) {
       setLoading2(true);
@@ -403,7 +452,7 @@ function App() {
           return;
         }
 
-        if (res1.status === 'fulfilled') {
+        if (res1.status === "fulfilled") {
           setProfile(res1.value.profile);
           setRepos(res1.value.repos);
           saveToHistory(res1.value.profile.login);
@@ -411,7 +460,7 @@ function App() {
           setError(getErrorMessage(res1.reason, username));
         }
 
-        if (res2.status === 'fulfilled') {
+        if (res2.status === "fulfilled") {
           setProfile2(res2.value.profile);
           setRepos2(res2.value.repos);
           saveToHistory(res2.value.profile.login);
@@ -425,21 +474,32 @@ function App() {
         }
         setProfile(res.profile);
         setRepos(res.repos);
+        setGists(res.gists);
         saveToHistory(res.profile.login);
 
         // Update URL and Title
         const url = new URL(window.location.href);
-        url.searchParams.set('user', res.profile.login);
-        window.history.pushState({ user: res.profile.login }, '', url.toString());
+        url.searchParams.set("user", res.profile.login);
+        window.history.pushState(
+          { user: res.profile.login },
+          "",
+          url.toString(),
+        );
         document.title = `${res.profile.login} — GitStats`;
 
         // Fetch public events for achievements & wrapped, and fetch full contribution calendar for the heatmap.
         let eventsMap = {};
         try {
           const eventPages = await Promise.all([
-            fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100&page=1`),
-            fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100&page=2`),
-            fetchGitHubJson(`https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100&page=3`),
+            fetchGitHubJson(
+              `https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100&page=1`,
+            ),
+            fetchGitHubJson(
+              `https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100&page=2`,
+            ),
+            fetchGitHubJson(
+              `https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100&page=3`,
+            ),
           ]);
 
           if (requestIdRef.current === requestId) {
@@ -451,8 +511,8 @@ function App() {
               // Convert the UTC timestamp to a local YYYY-MM-DD key.
               const localDate = new Date(evt.created_at);
               const y = localDate.getFullYear();
-              const m = String(localDate.getMonth() + 1).padStart(2, '0');
-              const d = String(localDate.getDate()).padStart(2, '0');
+              const m = String(localDate.getMonth() + 1).padStart(2, "0");
+              const d = String(localDate.getDate()).padStart(2, "0");
               const key = `${y}-${m}-${d}`;
               eventsMap[key] = (eventsMap[key] || 0) + 1;
             }
@@ -462,12 +522,15 @@ function App() {
           // Ignore event fetch failure
         }
 
-         try {
+        try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 6000);
-          const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(username)}`, {
-            signal: controller.signal,
-          });
+          const res = await fetch(
+            `https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(username)}`,
+            {
+              signal: controller.signal,
+            },
+          );
           clearTimeout(timeoutId);
 
           if (requestIdRef.current !== requestId) return;
@@ -506,9 +569,9 @@ function App() {
 
       // Remove URL parameter on error
       const url = new URL(window.location.href);
-      url.searchParams.delete('user');
-      window.history.pushState({}, '', url.toString());
-      document.title = 'GitStats';
+      url.searchParams.delete("user");
+      window.history.pushState({}, "", url.toString());
+      document.title = "GitStats";
     } finally {
       if (requestIdRef.current === requestId) {
         setLoading(false);
@@ -528,7 +591,7 @@ function App() {
   const handleSelectHistory = (username) => {
     setCompareMode(false);
     setInputValue(username);
-    handleSearch(username, '', false);
+    handleSearch(username, "", false);
   };
 
   const handleRemoveHistory = (username) => {
@@ -537,7 +600,7 @@ function App() {
       try {
         window.localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
       } catch (err) {
-        console.error('Failed to remove history item', err);
+        console.error("Failed to remove history item", err);
       }
       return updated;
     });
@@ -548,27 +611,32 @@ function App() {
     try {
       window.localStorage.removeItem(HISTORY_KEY);
     } catch (err) {
-      console.error('Failed to clear search history', err);
+      console.error("Failed to clear search history", err);
     }
   };
 
   const handleShareLink = () => {
     const url = window.location.href;
-    navigator.clipboard.writeText(url)
+    navigator.clipboard
+      .writeText(url)
       .then(() => {
-        setToastMessage('Link copied to clipboard!');
+        setToastMessage("Link copied to clipboard!");
         setShowToast(true);
         setTimeout(() => setShowToast(false), 2000);
       })
       .catch((err) => {
-        console.error('Failed to copy link:', err);
-        setToastMessage('Failed to copy link.');
+        console.error("Failed to copy link:", err);
+        setToastMessage("Failed to copy link.");
         setShowToast(true);
         setTimeout(() => setShowToast(false), 2000);
       });
   };
 
-  const showIntro = !loading && !profile && !error && (!compareMode || (!loading2 && !profile2 && !error2));
+  const showIntro =
+    !loading &&
+    !profile &&
+    !error &&
+    (!compareMode || (!loading2 && !profile2 && !error2));
   const showRepoEmptyState = profile && !loading && repos.length === 0;
   const showLanguageEmptyState = profile && !loading && !hasLanguageData;
 
@@ -585,8 +653,12 @@ function App() {
               G
             </div>
             <div>
-              <div className="text-sm font-semibold tracking-wide text-[var(--gs-text)]">GitStats</div>
-              <div className="text-xs text-[var(--gs-text-secondary)]">GitHub Profile Analyzer</div>
+              <div className="text-sm font-semibold tracking-wide text-[var(--gs-text)]">
+                GitStats
+              </div>
+              <div className="text-xs text-[var(--gs-text-secondary)]">
+                GitHub Profile Analyzer
+              </div>
             </div>
           </div>
 
@@ -604,14 +676,14 @@ function App() {
 
                 // Reset URL and Title
                 const url = new URL(window.location.href);
-                url.searchParams.delete('user');
-                window.history.pushState({}, '', url.toString());
-                document.title = 'GitStats';
+                url.searchParams.delete("user");
+                window.history.pushState({}, "", url.toString());
+                document.title = "GitStats";
               }}
               className={`inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border transition ${
                 compareMode
-                  ? 'border-[var(--gs-accent)] bg-[var(--gs-accent)]/10 text-[var(--gs-accent)]'
-                  : 'border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)]'
+                  ? "border-[var(--gs-accent)] bg-[var(--gs-accent)]/10 text-[var(--gs-accent)]"
+                  : "border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)]"
               }`}
             >
               <GitCompare className="h-4.5 w-4.5" />
@@ -649,16 +721,26 @@ function App() {
             <button
               type="button"
               onClick={() => {
-                setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
+                setTheme((currentTheme) =>
+                  currentTheme === "dark" ? "light" : "dark",
+                );
                 setIsThemeSpinning(true);
               }}
               onAnimationEnd={() => setIsThemeSpinning(false)}
-              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={
+                theme === "dark"
+                  ? "Switch to light mode"
+                  : "Switch to dark mode"
+              }
               className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] transition hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] ${
-                isThemeSpinning ? 'animate-spin-once' : ''
+                isThemeSpinning ? "animate-spin-once" : ""
               }`}
             >
-              {theme === 'dark' ? <SunMedium className="h-4.5 w-4.5" /> : <MoonStar className="h-4.5 w-4.5" />}
+              {theme === "dark" ? (
+                <SunMedium className="h-4.5 w-4.5" />
+              ) : (
+                <MoonStar className="h-4.5 w-4.5" />
+              )}
             </button>
           </div>
         </div>
@@ -667,16 +749,22 @@ function App() {
       <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <section className="panel relative overflow-hidden p-5 sm:p-6">
           <div className="relative z-10 mx-auto max-w-3xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gs-accent)]">Instant profile intelligence</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gs-accent)]">
+              Instant profile intelligence
+            </p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--gs-text)] sm:text-4xl">
               Explore a GitHub profile without leaving the page.
             </h1>
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[var(--gs-text-secondary)] sm:text-base">
-              Search any public username to inspect follower counts, top repositories, language distribution, and aggregate activity.
+              Search any public username to inspect follower counts, top
+              repositories, language distribution, and aggregate activity.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="relative z-10 mx-auto mt-6 max-w-3xl">
+          <form
+            onSubmit={handleSubmit}
+            className="relative z-10 mx-auto mt-6 max-w-3xl"
+          >
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3 sm:flex-row">
                 <div className="flex flex-1 items-center gap-3 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] px-4 py-3 focus-within:border-[var(--gs-accent)]">
@@ -685,7 +773,11 @@ function App() {
                     id="username-search"
                     value={inputValue}
                     onChange={(event) => setInputValue(event.target.value)}
-                    placeholder={compareMode ? "First GitHub username" : "Enter a GitHub username"}
+                    placeholder={
+                      compareMode
+                        ? "First GitHub username"
+                        : "Enter a GitHub username"
+                    }
                     autoComplete="off"
                     spellCheck="false"
                     aria-label="First GitHub username"
@@ -723,8 +815,12 @@ function App() {
                 disabled={loading || (compareMode && loading2)}
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--gs-accent)] px-5 py-3 text-sm font-semibold text-white dark:text-black transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {loading || loading2 ? <LoaderCircle className="h-4.5 w-4.5 animate-spin text-white dark:text-black" /> : <Search className="h-4.5 w-4.5 text-white dark:text-black" />}
-                {compareMode ? 'Compare Profiles' : 'Search'}
+                {loading || loading2 ? (
+                  <LoaderCircle className="h-4.5 w-4.5 animate-spin text-white dark:text-black" />
+                ) : (
+                  <Search className="h-4.5 w-4.5 text-white dark:text-black" />
+                )}
+                {compareMode ? "Compare Profiles" : "Search"}
               </button>
             </div>
           </form>
@@ -733,11 +829,23 @@ function App() {
             <div className="relative z-10 mx-auto mt-8 max-w-2xl rounded-lg border border-dashed border-[var(--gs-border)] bg-[var(--gs-surface-alt)] px-5 py-6 text-center text-sm text-[var(--gs-text-secondary)]">
               {compareMode ? (
                 <span>
-                  Start by entering two usernames like <span className="font-medium text-[var(--gs-text)]">sanket1035</span> and <span className="font-medium text-[var(--gs-text)]">torvalds</span> to compare.
+                  Start by entering two usernames like{" "}
+                  <span className="font-medium text-[var(--gs-text)]">
+                    sanket1035
+                  </span>{" "}
+                  and{" "}
+                  <span className="font-medium text-[var(--gs-text)]">
+                    torvalds
+                  </span>{" "}
+                  to compare.
                 </span>
               ) : (
                 <span>
-                  Start with a username like <span className="font-medium text-[var(--gs-text)]">sanket1035</span> to load a full profile summary.
+                  Start with a username like{" "}
+                  <span className="font-medium text-[var(--gs-text)]">
+                    sanket1035
+                  </span>{" "}
+                  to load a full profile summary.
                 </span>
               )}
             </div>
@@ -749,9 +857,17 @@ function App() {
             <div className="flex items-start gap-3">
               <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--gs-error)]" />
               <div>
-                <div className="font-semibold">Search failed {compareMode && '(User 1)'}</div>
-                <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">{error}</p>
-                {searchedUsername ? <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">Query: {searchedUsername}</p> : null}
+                <div className="font-semibold">
+                  Search failed {compareMode && "(User 1)"}
+                </div>
+                <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">
+                  {error}
+                </p>
+                {searchedUsername ? (
+                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">
+                    Query: {searchedUsername}
+                  </p>
+                ) : null}
               </div>
             </div>
           </section>
@@ -763,15 +879,21 @@ function App() {
               <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--gs-error)]" />
               <div>
                 <div className="font-semibold">Search failed (User 2)</div>
-                <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">{error2}</p>
-                {searchedUsername2 ? <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">Query: {searchedUsername2}</p> : null}
+                <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">
+                  {error2}
+                </p>
+                {searchedUsername2 ? (
+                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">
+                    Query: {searchedUsername2}
+                  </p>
+                ) : null}
               </div>
             </div>
           </section>
         ) : null}
 
         {compareMode ? (
-          (loading || loading2 || profile || profile2) ? (
+          loading || loading2 || profile || profile2 ? (
             <CompareView
               profile1={profile}
               repos1={repos}
@@ -783,9 +905,13 @@ function App() {
           ) : null
         ) : (
           <>
-            {loading || profile ? <ProfileCard profile={profile} loading={loading} /> : null}
+            {loading || profile ? (
+              <ProfileCard profile={profile} loading={loading} />
+            ) : null}
 
-            {loading || profile ? <StatsBar repos={repos} profile={profile} loading={loading} /> : null}
+            {loading || profile ? (
+              <StatsBar repos={repos} profile={profile} loading={loading} />
+            ) : null}
 
             {loading || profile ? (
               <AchievementBadges
@@ -805,7 +931,9 @@ function App() {
               />
             ) : null}
 
-            {loading || profile ? <LanguageChart repos={repos} loading={loading} /> : null}
+            {loading || profile ? (
+              <LanguageChart repos={repos} loading={loading} />
+            ) : null}
 
             {loading || profile ? (
               <ActivityInsights
@@ -815,16 +943,22 @@ function App() {
             ) : null}
 
             {showLanguageEmptyState && profile ? (
-              <section className="panel px-5 py-4 text-sm text-[var(--gs-text-secondary)]">Language data unavailable for this account.</section>
+              <section className="panel px-5 py-4 text-sm text-[var(--gs-text-secondary)]">
+                Language data unavailable for this account.
+              </section>
             ) : null}
 
             {showRepoEmptyState ? (
-              <section className="panel px-5 py-4 text-sm text-[var(--gs-text-secondary)]">No public repositories yet.</section>
+              <section className="panel px-5 py-4 text-sm text-[var(--gs-text-secondary)]">
+                No public repositories yet.
+              </section>
             ) : null}
 
             {loading ? (
               <section>
-                <div className="mb-3 text-sm font-medium text-[var(--gs-text-secondary)]">Repositories</div>
+                <div className="mb-3 text-sm font-medium text-[var(--gs-text-secondary)]">
+                  Repositories
+                </div>
                 <div className="grid gap-4 lg:grid-cols-2">
                   {Array.from({ length: 6 }).map((_, index) => (
                     <RepoCard key={index} index={index} loading />
@@ -833,42 +967,93 @@ function App() {
               </section>
             ) : profile && repos.length > 0 ? (
               <section className="flex flex-col gap-4 animate-fade-in-up">
-                <div className="flex items-end justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-semibold text-[var(--gs-text)]">Repositories</h2>
-                    <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">Public repositories for this account.</p>
+                    <h2 className="text-lg font-semibold text-[var(--gs-text)]">
+                      Work
+                    </h2>
+                    <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">
+                      Public repositories and gists for this account.
+                    </p>
+                  </div>
+                  <div className="flex gap-2 p-1 rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)]">
+                    <button
+                      onClick={() => setActiveTab("repos")}
+                      className={`px-4 py-1.5 text-sm font-medium rounded-md transition ${activeTab === "repos" ? "bg-[var(--gs-bg)] shadow-sm border border-[var(--gs-border)] text-[var(--gs-text)]" : "text-[var(--gs-text-secondary)] hover:text-[var(--gs-text)]"}`}
+                    >
+                      Repositories{" "}
+                      <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-[var(--gs-surface-alt)] px-2 py-0.5 text-xs text-[var(--gs-text)]">
+                        {repos.length}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("gists")}
+                      className={`px-4 py-1.5 text-sm font-medium rounded-md transition ${activeTab === "gists" ? "bg-[var(--gs-bg)] shadow-sm border border-[var(--gs-border)] text-[var(--gs-text)]" : "text-[var(--gs-text-secondary)] hover:text-[var(--gs-text)]"}`}
+                    >
+                      Gists{" "}
+                      <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-[var(--gs-surface-alt)] px-2 py-0.5 text-xs text-[var(--gs-text)]">
+                        {gists.length}
+                      </span>
+                    </button>
                   </div>
                 </div>
 
-                <RepoFilters
-                  languages={languages}
-                  filterLanguage={filterLanguage}
-                  setFilterLanguage={setFilterLanguage}
-                  sortBy={sortBy}
-                  setSortBy={setSortBy}
-                  filteredCount={filteredRepos.length}
-                  totalCount={repos.length}
-                />
+                {activeTab === "repos" ? (
+                  <>
+                    <RepoFilters
+                      languages={languages}
+                      filterLanguage={filterLanguage}
+                      setFilterLanguage={setFilterLanguage}
+                      sortBy={sortBy}
+                      setSortBy={setSortBy}
+                      filteredCount={filteredRepos.length}
+                      totalCount={repos.length}
+                    />
 
-                {displayRepos.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-[var(--gs-border)] bg-[var(--gs-surface-alt)] p-8 text-center text-sm text-[var(--gs-text-secondary)]">
-                    No repositories match the selected language filter.
-                  </div>
+                    {displayRepos.length === 0 ? (
+                      <div className="rounded-lg border border-dashed border-[var(--gs-border)] bg-[var(--gs-surface-alt)] p-8 text-center text-sm text-[var(--gs-text-secondary)]">
+                        No repositories match the selected language filter.
+                      </div>
+                    ) : (
+                      <div
+                        className={`grid gap-4 lg:grid-cols-2 transition-opacity duration-150 ${isGridFading ? "opacity-0" : "opacity-100"}`}
+                      >
+                        {displayRepos.map((repo, index) => (
+                          <RepoCard key={repo.id} repo={repo} index={index} />
+                        ))}
+                      </div>
+                    )}
+                  </>
                 ) : (
-                  <div className={`grid gap-4 lg:grid-cols-2 transition-opacity duration-150 ${isGridFading ? 'opacity-0' : 'opacity-100'}`}>
-                    {displayRepos.map((repo, index) => (
-                      <RepoCard key={repo.id} repo={repo} index={index} />
-                    ))}
-                  </div>
+                  <>
+                    {gists.length === 0 ? (
+                      <div className="rounded-lg border border-dashed border-[var(--gs-border)] bg-[var(--gs-surface-alt)] p-8 text-center text-sm text-[var(--gs-text-secondary)]">
+                        No public gists found.
+                      </div>
+                    ) : (
+                      <div
+                        className={`grid gap-4 lg:grid-cols-2 transition-opacity duration-150`}
+                      >
+                        {gists.map((gist, index) => (
+                          <GistCard key={gist.id} gist={gist} index={index} />
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </section>
             ) : null}
           </>
         )}
 
-        {!loading && !profile && !error && (!compareMode || (!loading2 && !profile2 && !error2)) ? (
+        {!loading &&
+        !profile &&
+        !error &&
+        (!compareMode || (!loading2 && !profile2 && !error2)) ? (
           <div className="flex justify-center pb-8 pt-2 text-xs uppercase tracking-[0.22em] text-[var(--gs-text-secondary)]">
-            {compareMode ? 'Search two usernames to begin comparison.' : 'Search a username to begin.'}
+            {compareMode
+              ? "Search two usernames to begin comparison."
+              : "Search a username to begin."}
           </div>
         ) : null}
       </main>
@@ -878,7 +1063,9 @@ function App() {
         onClick={scrollToTop}
         aria-label="Back to top"
         className={`fixed bottom-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text)] shadow-md transition-all duration-500 ease-out hover:scale-110 hover:-translate-y-1 hover:border-[var(--gs-accent)]/60 hover:text-[var(--gs-accent)] hover:shadow-lg ${
-          showBackToTop ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
+          showBackToTop
+            ? "pointer-events-auto translate-y-0 opacity-100"
+            : "pointer-events-none translate-y-4 opacity-0"
         }`}
       >
         <ArrowUp className="h-4.5 w-4.5" />
