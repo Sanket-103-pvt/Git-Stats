@@ -11,11 +11,11 @@ GitStats participates in ELUSoC 2026, an open-source contribution program run by
 
 ## Difficulty Levels and Points
 
-| Label | Difficulty | Points |
-| --- | --- | --- |
-| `newbie` | Beginner - good for first-time contributors | 10 XP |
-| `adventurer` | Intermediate - requires understanding of the codebase | 25 XP |
-| `veteran` | Advanced - significant feature or architectural change | 50 XP |
+| Label        | Difficulty                                             | Points |
+| ------------ | ------------------------------------------------------ | ------ |
+| `newbie`     | Beginner - good for first-time contributors            | 10 XP  |
+| `adventurer` | Intermediate - requires understanding of the codebase  | 25 XP  |
+| `veteran`    | Advanced - significant feature or architectural change | 50 XP  |
 
 ## Getting Assigned
 
@@ -75,6 +75,7 @@ Branch naming examples:
 - The issue number it resolves (e.g. `Fixes #12`)
 - A short summary of what changed and why
 - Screenshots or screen recordings if the change affects the UI
+
 5. Check all items in the PR checklist before requesting review
 
 ## Pull Request Checklist

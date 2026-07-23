@@ -2,16 +2,16 @@
 <html lang="en">
   <head>
     <script>
-  (() => {
-    const theme = localStorage.getItem('gitstats-theme');
+      (() => {
+        const theme = localStorage.getItem("gitstats-theme");
 
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  })();
-</script>
+        if (theme === "dark") {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -25,19 +25,31 @@
     <title>GitStats</title>
 
     <!-- Standard SEO Meta Tags -->
-    <meta name="description" content="A sleek dashboard for visualizing and analyzing your GitHub profile statistics, repositories, and contributions." />
-    <meta name="keywords" content="GitHub, GitStats, Profile Analyzer, Developer Tools, GitHub Stats" />
+    <meta
+      name="description"
+      content="A sleek dashboard for visualizing and analyzing your GitHub profile statistics, repositories, and contributions."
+    />
+    <meta
+      name="keywords"
+      content="GitHub, GitStats, Profile Analyzer, Developer Tools, GitHub Stats"
+    />
 
     <!-- Open Graph / Facebook Meta Tags -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="GitStats - GitHub Profile Analyzer" />
-    <meta property="og:description" content="Visualize and analyze your GitHub profile statistics, repositories, and contributions seamlessly." />
+    <meta
+      property="og:description"
+      content="Visualize and analyze your GitHub profile statistics, repositories, and contributions seamlessly."
+    />
     <meta property="og:image" content="/images/screenshot-stats.png" />
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="GitStats - GitHub Profile Analyzer" />
-    <meta name="twitter:description" content="Visualize and analyze your GitHub profile statistics, repositories, and contributions seamlessly." />
+    <meta
+      name="twitter:description"
+      content="Visualize and analyze your GitHub profile statistics, repositories, and contributions seamlessly."
+    />
     <meta name="twitter:image" content="/images/screenshot-stats.png" />
   </head>
   <body>

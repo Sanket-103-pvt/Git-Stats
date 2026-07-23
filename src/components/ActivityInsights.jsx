@@ -1,4 +1,12 @@
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell,
+} from "recharts";
 
 // NOTE: Events API only returns the last 90 days of public activity.
 // This component analyzes event timestamps to determine activity patterns.
@@ -36,8 +44,24 @@ export default function ActivityInsights({ eventTimestamps, loading }) {
     hourCounts[d.getHours()]++;
   });
 
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const dayNamesPlural = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'];
+  const dayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const dayNamesPlural = [
+    "Sundays",
+    "Mondays",
+    "Tuesdays",
+    "Wednesdays",
+    "Thursdays",
+    "Fridays",
+    "Saturdays",
+  ];
 
   let maxDayIdx = 0;
   let maxDayCount = 0;
@@ -58,35 +82,35 @@ export default function ActivityInsights({ eventTimestamps, loading }) {
   });
 
   // Coder Personality Classification
-  let emoji = '💼';
-  let label = 'The Daytime Dev';
+  let emoji = "💼";
+  let label = "The Daytime Dev";
   if (maxHour >= 0 && maxHour < 4) {
-    emoji = '🦉';
-    label = 'The Night Owl';
+    emoji = "🦉";
+    label = "The Night Owl";
   } else if (maxHour >= 4 && maxHour < 6) {
-    emoji = '🌅';
-    label = 'The Early Bird';
+    emoji = "🌅";
+    label = "The Early Bird";
   } else if (maxHour >= 6 && maxHour < 12) {
-    emoji = '☕';
-    label = 'The Morning Coder';
+    emoji = "☕";
+    label = "The Morning Coder";
   } else if (maxHour >= 12 && maxHour < 18) {
-    emoji = '💼';
-    label = 'The Daytime Dev';
+    emoji = "💼";
+    label = "The Daytime Dev";
   } else {
-    emoji = '🌙';
-    label = 'The Evening Hacker';
+    emoji = "🌙";
+    label = "The Evening Hacker";
   }
 
   // Active time window description
-  let activeWindow = 'evenings';
+  let activeWindow = "evenings";
   if (maxHour >= 0 && maxHour < 6) {
-    activeWindow = 'late nights (12-6 AM)';
+    activeWindow = "late nights (12-6 AM)";
   } else if (maxHour >= 6 && maxHour < 12) {
-    activeWindow = 'mornings (6 AM-12 PM)';
+    activeWindow = "mornings (6 AM-12 PM)";
   } else if (maxHour >= 12 && maxHour < 18) {
-    activeWindow = 'afternoons (12-6 PM)';
+    activeWindow = "afternoons (12-6 PM)";
   } else {
-    activeWindow = 'evenings (6 PM-12 AM)';
+    activeWindow = "evenings (6 PM-12 AM)";
   }
 
   const dayData = dayNames.map((name, idx) => ({
@@ -100,9 +124,12 @@ export default function ActivityInsights({ eventTimestamps, loading }) {
     <section className="panel p-5 sm:p-6 animate-fade-in-up">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-[var(--gs-text)]">Activity Pattern</h2>
+          <h2 className="text-lg font-semibold text-[var(--gs-text)]">
+            Activity Pattern
+          </h2>
           <p className="mt-1 text-sm text-[var(--gs-text-secondary)]">
-            Commit and event frequency analytics based on your public activity timeline.
+            Commit and event frequency analytics based on your public activity
+            timeline.
           </p>
         </div>
         <div className="text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">
@@ -121,16 +148,27 @@ export default function ActivityInsights({ eventTimestamps, loading }) {
               <div className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--gs-accent)]">
                 Personality
               </div>
-              <h3 className="text-lg font-bold text-[var(--gs-text)] mt-0.5">{label}</h3>
+              <h3 className="text-lg font-bold text-[var(--gs-text)] mt-0.5">
+                {label}
+              </h3>
             </div>
           </div>
 
           <div className="border-t border-[var(--gs-border)] pt-4 mt-1">
             <div className="text-sm font-medium text-[var(--gs-text)]">
-              Most active on <span className="text-[var(--gs-accent)] font-semibold">{dayNamesPlural[maxDayIdx]}</span> during the <span className="text-[var(--gs-accent)] font-semibold">{activeWindow}</span>.
+              Most active on{" "}
+              <span className="text-[var(--gs-accent)] font-semibold">
+                {dayNamesPlural[maxDayIdx]}
+              </span>{" "}
+              during the{" "}
+              <span className="text-[var(--gs-accent)] font-semibold">
+                {activeWindow}
+              </span>
+              .
             </div>
             <p className="text-xs text-[var(--gs-text-secondary)] mt-1.5 leading-relaxed">
-              Timestamps are extracted from public push, pull request, and issue events over the last 90 days.
+              Timestamps are extracted from public push, pull request, and issue
+              events over the last 90 days.
             </p>
           </div>
         </div>
@@ -138,27 +176,34 @@ export default function ActivityInsights({ eventTimestamps, loading }) {
         {/* Chart */}
         <div className="h-[200px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={dayData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+            <BarChart
+              data={dayData}
+              margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
+            >
               <XAxis
                 dataKey="name"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: 'var(--gs-text-secondary)', fontSize: 11, fontWeight: 500 }}
+                tick={{
+                  fill: "var(--gs-text-secondary)",
+                  fontSize: 11,
+                  fontWeight: 500,
+                }}
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: 'var(--gs-text-secondary)', fontSize: 11 }}
+                tick={{ fill: "var(--gs-text-secondary)", fontSize: 11 }}
                 allowDecimals={false}
               />
               <Tooltip
-                cursor={{ fill: 'var(--gs-surface-alt)', opacity: 0.4 }}
+                cursor={{ fill: "var(--gs-surface-alt)", opacity: 0.4 }}
                 contentStyle={{
-                  backgroundColor: 'var(--gs-surface)',
-                  borderColor: 'var(--gs-border)',
-                  borderRadius: '8px',
-                  color: 'var(--gs-text)',
-                  fontSize: '12px',
+                  backgroundColor: "var(--gs-surface)",
+                  borderColor: "var(--gs-border)",
+                  borderRadius: "8px",
+                  color: "var(--gs-text)",
+                  fontSize: "12px",
                 }}
               />
               <Bar dataKey="events" radius={[4, 4, 0, 0]}>
@@ -167,7 +212,7 @@ export default function ActivityInsights({ eventTimestamps, loading }) {
                   return (
                     <Cell
                       key={`cell-${index}`}
-                      fill={isMax ? 'var(--gs-accent)' : 'var(--gs-border)'}
+                      fill={isMax ? "var(--gs-accent)" : "var(--gs-border)"}
                     />
                   );
                 })}

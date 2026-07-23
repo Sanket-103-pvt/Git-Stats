@@ -1,10 +1,23 @@
-import { useEffect, useState, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { X, Download, Link, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import useWrappedStats from '../hooks/useWrappedStats';
+import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
+import {
+  X,
+  Download,
+  Link,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+} from "lucide-react";
+import html2canvas from "html2canvas";
+import useWrappedStats from "../hooks/useWrappedStats";
 
-export default function GitHubWrapped({ profile, repos, eventTimestamps, activityMap, onCopyShareLink }) {
+export default function GitHubWrapped({
+  profile,
+  repos,
+  eventTimestamps,
+  activityMap,
+  onCopyShareLink,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const stats = useWrappedStats(profile, repos, eventTimestamps, activityMap);
@@ -67,7 +80,7 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, activit
 
   const handleDownload = (e) => {
     e.stopPropagation();
-    const summaryCard = document.getElementById('wrapped-summary-card');
+    const summaryCard = document.getElementById("wrapped-summary-card");
     if (!summaryCard) return;
 
     html2canvas(summaryCard, {
@@ -75,9 +88,9 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, activit
       useCORS: true,
       scale: 3,
     }).then((canvas) => {
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.download = `wrapped-${profile.login}-2026.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = canvas.toDataURL("image/png");
       link.click();
     });
   };
@@ -87,12 +100,16 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, activit
   const slides = [
     // Slide 1: Welcome
     {
-      bg: 'from-indigo-600 via-purple-600 to-pink-500',
+      bg: "from-indigo-600 via-purple-600 to-pink-500",
       content: (
         <div className="flex flex-col items-center justify-center text-center space-y-6 animate-fade-in px-6">
-          <div className="text-sm font-bold uppercase tracking-[0.2em] text-white/80">GitStats Wrapped</div>
+          <div className="text-sm font-bold uppercase tracking-[0.2em] text-white/80">
+            GitStats Wrapped
+          </div>
           <h2 className="text-4xl sm:text-5xl font-black text-white leading-tight">
-            Your Year<br />on GitHub
+            Your Year
+            <br />
+            on GitHub
           </h2>
           <div className="relative mt-2">
             <img
@@ -106,17 +123,20 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, activit
           </div>
           <div className="text-xl font-bold text-white">@{profile.login}</div>
           <p className="text-xs text-white/70 max-w-xs">
-            Let's dive into your coding journey and reveal your unique developer insights.
+            Let's dive into your coding journey and reveal your unique developer
+            insights.
           </p>
         </div>
       ),
     },
     // Slide 2: Language
     {
-      bg: 'from-emerald-500 via-teal-600 to-cyan-500',
+      bg: "from-emerald-500 via-teal-600 to-cyan-500",
       content: (
         <div className="flex flex-col items-center justify-center text-center space-y-6 animate-fade-in px-6">
-          <div className="text-sm font-bold uppercase tracking-[0.2em] text-white/85">Language Spotlight</div>
+          <div className="text-sm font-bold uppercase tracking-[0.2em] text-white/85">
+            Language Spotlight
+          </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
             Your #1 Language
           </h2>
@@ -127,17 +147,20 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, activit
             {stats.mostUsedLanguage}
           </div>
           <p className="text-sm text-white/80 max-w-xs leading-relaxed">
-            You pushed the most updates to repos powered by this language. Truly a master of your craft!
+            You pushed the most updates to repos powered by this language. Truly
+            a master of your craft!
           </p>
         </div>
       ),
     },
     // Slide 3: Repo
     {
-      bg: 'from-amber-500 via-orange-600 to-rose-500',
+      bg: "from-amber-500 via-orange-600 to-rose-500",
       content: (
         <div className="flex flex-col items-center justify-center text-center space-y-6 animate-fade-in px-6">
-          <div className="text-sm font-bold uppercase tracking-[0.2em] text-white/85">Top Creation</div>
+          <div className="text-sm font-bold uppercase tracking-[0.2em] text-white/85">
+            Top Creation
+          </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
             Most Starred Repo
           </h2>
@@ -148,24 +171,30 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, activit
                 {stats.mostStarredRepo.name}
               </div>
               <div className="text-lg font-bold text-white/90">
-                {stats.mostStarredRepo.stargazers_count} Star{stats.mostStarredRepo.stargazers_count === 1 ? '' : 's'}
+                {stats.mostStarredRepo.stargazers_count} Star
+                {stats.mostStarredRepo.stargazers_count === 1 ? "" : "s"}
               </div>
             </div>
           ) : (
-            <div className="text-xl font-bold text-white">No starred repos yet</div>
+            <div className="text-xl font-bold text-white">
+              No starred repos yet
+            </div>
           )}
           <p className="text-xs text-white/75 max-w-xs">
-            The community appreciated this work the most. An excellent contribution!
+            The community appreciated this work the most. An excellent
+            contribution!
           </p>
         </div>
       ),
     },
     // Slide 4: Peak Month
     {
-      bg: 'from-blue-600 via-indigo-600 to-violet-600',
+      bg: "from-blue-600 via-indigo-600 to-violet-600",
       content: (
         <div className="flex flex-col items-center justify-center text-center space-y-6 animate-fade-in px-6">
-          <div className="text-sm font-bold uppercase tracking-[0.2em] text-white/85">Peak Momentum</div>
+          <div className="text-sm font-bold uppercase tracking-[0.2em] text-white/85">
+            Peak Momentum
+          </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
             Most Active Month
           </h2>
@@ -176,17 +205,20 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, activit
             {stats.peakActivityMonth}
           </div>
           <p className="text-sm text-white/80 max-w-xs leading-relaxed">
-            During this month, your commit frequencies and project participation hit their highest gears.
+            During this month, your commit frequencies and project participation
+            hit their highest gears.
           </p>
         </div>
       ),
     },
     // Slide 5: Personality
     {
-      bg: 'from-fuchsia-600 via-pink-600 to-rose-600',
+      bg: "from-fuchsia-600 via-pink-600 to-rose-600",
       content: (
         <div className="flex flex-col items-center justify-center text-center space-y-6 animate-fade-in px-6">
-          <div className="text-sm font-bold uppercase tracking-[0.2em] text-white/85">Coding Rhythm</div>
+          <div className="text-sm font-bold uppercase tracking-[0.2em] text-white/85">
+            Coding Rhythm
+          </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
             Developer Persona
           </h2>
@@ -204,14 +236,14 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, activit
     },
     // Slide 6: Summary & Export
     {
-      bg: 'from-gray-950 via-slate-900 to-zinc-950',
+      bg: "from-gray-950 via-slate-900 to-zinc-950",
       content: (
         <div className="flex flex-col items-center justify-center text-center space-y-5 animate-fade-in px-6 w-full max-w-md">
           {/* Card target for html2canvas */}
           <div
             id="wrapped-summary-card"
             className="w-full rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 to-zinc-950 p-6 text-left shadow-2xl relative overflow-hidden"
-            style={{ minHeight: '430px' }}
+            style={{ minHeight: "430px" }}
           >
             {/* Visual background details for exporting */}
             <div className="absolute right-[-4rem] top-[-4rem] -z-10 h-32 w-32 rounded-full bg-purple-500/10 blur-2xl" />
@@ -224,38 +256,60 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, activit
                 className="h-14 w-14 rounded-full border-2 border-purple-500/40 object-cover"
               />
               <div>
-                <div className="text-md font-bold text-white">@{profile.login}</div>
-                <div className="text-xs text-purple-400 font-semibold tracking-wider uppercase">My GitStats Wrapped</div>
+                <div className="text-md font-bold text-white">
+                  @{profile.login}
+                </div>
+                <div className="text-xs text-purple-400 font-semibold tracking-wider uppercase">
+                  My GitStats Wrapped
+                </div>
               </div>
             </div>
 
             <div className="mt-5 space-y-4">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">#1 Programming Language</div>
-                <div className="text-lg font-extrabold text-white mt-0.5">{stats.mostUsedLanguage}</div>
+                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                  #1 Programming Language
+                </div>
+                <div className="text-lg font-extrabold text-white mt-0.5">
+                  {stats.mostUsedLanguage}
+                </div>
               </div>
 
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Top Creation</div>
+                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                  Top Creation
+                </div>
                 <div className="text-lg font-extrabold text-white mt-0.5 truncate">
-                  {stats.mostStarredRepo ? stats.mostStarredRepo.name : 'N/A'}
+                  {stats.mostStarredRepo ? stats.mostStarredRepo.name : "N/A"}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Peak Month</div>
-                  <div className="text-md font-extrabold text-white mt-0.5">{stats.peakActivityMonth}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                    Peak Month
+                  </div>
+                  <div className="text-md font-extrabold text-white mt-0.5">
+                    {stats.peakActivityMonth}
+                  </div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Longest Streak</div>
-                  <div className="text-md font-extrabold text-white mt-0.5">{stats.longestStreak} days</div>
+                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                    Longest Streak
+                  </div>
+                  <div className="text-md font-extrabold text-white mt-0.5">
+                    {stats.longestStreak} days
+                  </div>
                 </div>
               </div>
 
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Developer Persona</div>
-                <div className="text-md font-extrabold text-purple-400 mt-0.5">{stats.coderPersonality}</div>
+                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                  Developer Persona
+                </div>
+                <div className="text-md font-extrabold text-purple-400 mt-0.5">
+                  {stats.coderPersonality}
+                </div>
               </div>
             </div>
 
@@ -303,74 +357,84 @@ export default function GitHubWrapped({ profile, repos, eventTimestamps, activit
         <span>Wrapped</span>
       </button>
 
-      {isOpen && createPortal(
-        <div
-          onClick={() => {
-            if (currentSlide < 5) {
-              setCurrentSlide(currentSlide + 1);
-            }
-          }}
-          className={`fixed inset-0 z-[9999] flex flex-col items-center justify-start sm:justify-center overflow-y-auto bg-gradient-to-br ${slides[currentSlide].bg} transition-colors duration-700 select-none cursor-pointer py-16 px-4`}
-        >
-          <div className="absolute top-6 inset-x-6 flex items-center justify-between text-white z-50">
-            <div className="flex-1 flex gap-1.5 mr-6">
-              {slides.map((_, idx) => (
-                <div
-                  key={idx}
-                  onClick={(e) => handleDotClick(idx, e)}
-                  className="h-1 flex-1 rounded-full overflow-hidden bg-white/20 cursor-pointer"
-                >
+      {isOpen &&
+        createPortal(
+          <div
+            onClick={() => {
+              if (currentSlide < 5) {
+                setCurrentSlide(currentSlide + 1);
+              }
+            }}
+            className={`fixed inset-0 z-[9999] flex flex-col items-center justify-start sm:justify-center overflow-y-auto bg-gradient-to-br ${slides[currentSlide].bg} transition-colors duration-700 select-none cursor-pointer py-16 px-4`}
+          >
+            <div className="absolute top-6 inset-x-6 flex items-center justify-between text-white z-50">
+              <div className="flex-1 flex gap-1.5 mr-6">
+                {slides.map((_, idx) => (
                   <div
-                    className="h-full bg-white transition-all duration-300"
-                    style={{
-                      width: idx < currentSlide ? '100%' : idx === currentSlide ? '60%' : '0%',
-                    }}
-                  />
-                </div>
-              ))}
+                    key={idx}
+                    onClick={(e) => handleDotClick(idx, e)}
+                    className="h-1 flex-1 rounded-full overflow-hidden bg-white/20 cursor-pointer"
+                  >
+                    <div
+                      className="h-full bg-white transition-all duration-300"
+                      style={{
+                        width:
+                          idx < currentSlide
+                            ? "100%"
+                            : idx === currentSlide
+                              ? "60%"
+                              : "0%",
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(false);
+                }}
+                className="rounded-full p-1.5 bg-black/10 hover:bg-black/25 text-white/80 hover:text-white transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsOpen(false);
-              }}
-              className="rounded-full p-1.5 bg-black/10 hover:bg-black/25 text-white/80 hover:text-white transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+            <div className="absolute inset-x-4 flex justify-between items-center pointer-events-none">
+              <button
+                type="button"
+                onClick={handlePrev}
+                disabled={currentSlide === 0}
+                className={`pointer-events-auto h-12 w-12 flex items-center justify-center rounded-full bg-black/15 text-white/80 hover:text-white transition-opacity border border-white/10 ${
+                  currentSlide === 0
+                    ? "opacity-0 cursor-default"
+                    : "opacity-100"
+                }`}
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={currentSlide === 5}
+                className={`pointer-events-auto h-12 w-12 flex items-center justify-center rounded-full bg-black/15 text-white/80 hover:text-white transition-opacity border border-white/10 ${
+                  currentSlide === 5
+                    ? "opacity-0 cursor-default"
+                    : "opacity-100"
+                }`}
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </div>
 
-          <div className="absolute inset-x-4 flex justify-between items-center pointer-events-none">
-            <button
-              type="button"
-              onClick={handlePrev}
-              disabled={currentSlide === 0}
-              className={`pointer-events-auto h-12 w-12 flex items-center justify-center rounded-full bg-black/15 text-white/80 hover:text-white transition-opacity border border-white/10 ${
-                currentSlide === 0 ? 'opacity-0 cursor-default' : 'opacity-100'
-              }`}
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={currentSlide === 5}
-              className={`pointer-events-auto h-12 w-12 flex items-center justify-center rounded-full bg-black/15 text-white/80 hover:text-white transition-opacity border border-white/10 ${
-                currentSlide === 5 ? 'opacity-0 cursor-default' : 'opacity-100'
-              }`}
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
-          </div>
-
-          <div className="w-full flex justify-center py-12">
-            {slides[currentSlide].content}
-          </div>
-        </div>,
-        document.body
-      )}
+            <div className="w-full flex justify-center py-12">
+              {slides[currentSlide].content}
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

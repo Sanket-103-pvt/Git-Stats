@@ -7,11 +7,11 @@ export default function RepoFilters({
   filteredCount,
   totalCount,
 }) {
-  const hasActiveFilters = filterLanguage !== '' || sortBy !== 'stars';
+  const hasActiveFilters = filterLanguage !== "" || sortBy !== "stars";
 
   const handleClear = () => {
-    setFilterLanguage('');
-    setSortBy('stars');
+    setFilterLanguage("");
+    setSortBy("stars");
   };
 
   return (
@@ -20,7 +20,10 @@ export default function RepoFilters({
       <div className="flex flex-col gap-3 w-full sm:flex-row sm:items-center sm:w-auto">
         {/* Language Filter */}
         <div className="flex flex-col gap-1.5 w-full sm:w-48">
-          <label htmlFor="lang-filter" className="text-xs font-semibold text-[var(--gs-text-secondary)]">
+          <label
+            htmlFor="lang-filter"
+            className="text-xs font-semibold text-[var(--gs-text-secondary)]"
+          >
             Language
           </label>
           <select
@@ -40,7 +43,10 @@ export default function RepoFilters({
 
         {/* Sort Selector */}
         <div className="flex flex-col gap-1.5 w-full sm:w-48">
-          <label htmlFor="sort-select" className="text-xs font-semibold text-[var(--gs-text-secondary)]">
+          <label
+            htmlFor="sort-select"
+            className="text-xs font-semibold text-[var(--gs-text-secondary)]"
+          >
             Sort by
           </label>
           <select
@@ -60,10 +66,11 @@ export default function RepoFilters({
       {/* Stats Counter & Clear Controls */}
       <div className="flex items-center justify-between gap-4 mt-1 sm:mt-0 sm:flex-col sm:items-end">
         <span className="text-sm font-medium text-[var(--gs-text-secondary)]">
-          Showing <strong className="text-[var(--gs-text)]">{filteredCount}</strong> of{' '}
+          Showing{" "}
+          <strong className="text-[var(--gs-text)]">{filteredCount}</strong> of{" "}
           <strong className="text-[var(--gs-text)]">{totalCount}</strong> repos
         </span>
-        
+
         {hasActiveFilters && (
           <button
             type="button"

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Check, Copy, GitFork, Star } from 'lucide-react';
+import { useState } from "react";
+import { Check, Copy, GitFork, Star } from "lucide-react";
 
 function RepoSkeleton({ index = 0 }) {
   return (
@@ -19,24 +19,24 @@ function RepoSkeleton({ index = 0 }) {
 }
 
 const LANGUAGE_COLORS = {
-  JavaScript: '#f1e05a',
-  TypeScript: '#3178c6',
-  Python: '#3572A5',
-  HTML: '#e34c26',
-  CSS: '#563d7c',
-  Rust: '#dea584',
-  Go: '#00ADD8',
-  Java: '#b07219',
-  'C++': '#f34b7d',
-  'C#': '#178600',
-  Ruby: '#701516',
-  PHP: '#4F5D95',
-  Shell: '#89e051',
+  JavaScript: "#f1e05a",
+  TypeScript: "#3178c6",
+  Python: "#3572A5",
+  HTML: "#e34c26",
+  CSS: "#563d7c",
+  Rust: "#dea584",
+  Go: "#00ADD8",
+  Java: "#b07219",
+  "C++": "#f34b7d",
+  "C#": "#178600",
+  Ruby: "#701516",
+  PHP: "#4F5D95",
+  Shell: "#89e051",
 };
 
 function getLanguageColor(language) {
-  if (!language) return '#8b949e'; // Fallback grey for Unknown
-  return LANGUAGE_COLORS[language] || '#58a6ff'; // Default accent blue
+  if (!language) return "#8b949e"; // Fallback grey for Unknown
+  return LANGUAGE_COLORS[language] || "#58a6ff"; // Default accent blue
 }
 
 function RepoCard({ repo, loading, index = 0 }) {
@@ -52,7 +52,8 @@ function RepoCard({ repo, loading, index = 0 }) {
 
   const handleCopyCloneUrl = (e) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(repo.clone_url)
+    navigator.clipboard
+      .writeText(repo.clone_url)
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -87,13 +88,13 @@ function RepoCard({ repo, loading, index = 0 }) {
               className="h-2 w-2 rounded-full"
               style={{ backgroundColor: getLanguageColor(repo.language) }}
             />
-            {repo.language || 'Unknown'}
+            {repo.language || "Unknown"}
           </span>
         </div>
       </div>
 
       <p className="mt-3 min-h-[3rem] text-sm leading-6 text-[var(--gs-text-secondary)] line-clamp-3">
-        {repo.description || 'No description provided.'}
+        {repo.description || "No description provided."}
       </p>
 
       <div className="mt-5 flex items-center justify-between border-t border-[var(--gs-border)] pt-4 text-sm text-[var(--gs-text-secondary)]">
@@ -112,11 +113,19 @@ function RepoCard({ repo, loading, index = 0 }) {
             title="Copy git clone URL"
             className="inline-flex items-center gap-1.5 text-xs text-[var(--gs-text-secondary)] hover:text-[var(--gs-accent)] transition-colors p-1 rounded hover:bg-[var(--gs-surface-alt)]"
           >
-            {copied ? <Check className="h-3.5 w-3.5 text-[var(--gs-success)]" /> : <Copy className="h-3.5 w-3.5" />}
-            <span>{copied ? 'Copied!' : 'Clone'}</span>
+            {copied ? (
+              <Check className="h-3.5 w-3.5 text-[var(--gs-success)]" />
+            ) : (
+              <Copy className="h-3.5 w-3.5" />
+            )}
+            <span>{copied ? "Copied!" : "Clone"}</span>
           </button>
         </div>
-        {repo.fork ? <span className="text-[11px] uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">Fork</span> : null}
+        {repo.fork ? (
+          <span className="text-[11px] uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">
+            Fork
+          </span>
+        ) : null}
       </div>
     </article>
   );

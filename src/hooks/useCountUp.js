@@ -1,9 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 // Easing function: ease-out quad (starts fast, slows down at the end)
 const easeOutQuad = (t) => t * (2 - t);
 
-export default function useCountUp(targetValue, duration = 1000, startOnMount = true) {
+export default function useCountUp(
+  targetValue,
+  duration = 1000,
+  startOnMount = true,
+) {
   const target = Number(targetValue) || 0;
   const [currentValue, setCurrentValue] = useState(() => {
     return startOnMount ? 0 : target;
@@ -13,7 +17,7 @@ export default function useCountUp(targetValue, duration = 1000, startOnMount = 
 
   useEffect(() => {
     // Check prefers-reduced-motion media query
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (mediaQuery.matches) {
       setCurrentValue(target);
       return;
@@ -68,10 +72,10 @@ export function formatStatValue(value, target) {
     return val.toLocaleString();
   }
   if (val >= 1000000) {
-    return (val / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    return (val / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
   }
   if (val >= 1000) {
-    return (val / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return (val / 1000).toFixed(1).replace(/\.0$/, "") + "K";
   }
   return val.toLocaleString();
 }

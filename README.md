@@ -10,6 +10,7 @@ GitHub Profile Analyzer - explore any public GitHub account without leaving the 
 [![GitHub API](https://img.shields.io/badge/GitHub-REST%20API%20v3-181717?style=flat-square&logo=github)](https://docs.github.com/en/rest)
 [![License MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 [![ELUSoC 2026](https://img.shields.io/badge/ELUSoC-2026-purple?style=flat-square)](https://edulinkup.dev/elusoc)
+
 ## Features
 
 - GitHub profile search with real-time data from the GitHub REST API
@@ -23,14 +24,14 @@ GitHub Profile Analyzer - explore any public GitHub account without leaving the 
 
 ## Tech Stack
 
-| Layer | Technology |
-| --- | --- |
-| Framework | React 18 |
-| Build Tool | Vite 5 |
-| Styling | Tailwind CSS 3 |
-| Charts | Recharts |
-| Icons | lucide-react |
-| Data | GitHub REST API v3 |
+| Layer      | Technology         |
+| ---------- | ------------------ |
+| Framework  | React 18           |
+| Build Tool | Vite 5             |
+| Styling    | Tailwind CSS 3     |
+| Charts     | Recharts           |
+| Icons      | lucide-react       |
+| Data       | GitHub REST API v3 |
 
 ## Getting Started
 
@@ -93,6 +94,7 @@ GET https://api.github.com/users/{username}/repos?per_page=100&sort=updated
 By using a GitHub Personal Access Token, you can increase the rate limit from 60 to 5000 requests per hour.
 
 ### Step 1: Create a Personal Access Token
+
 1. Go to [GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
 2. Click "Generate new token (classic)"
 3. Give your token a descriptive name
@@ -101,6 +103,7 @@ By using a GitHub Personal Access Token, you can increase the rate limit from 60
 6. **Copy the token immediately** - you won't be able to see it again!
 
 ### Step 2: Configure the Token
+
 1. Copy the `.env.example` file to `.env` in the project root:
    ```bash
    cp .env.example .env
@@ -109,6 +112,7 @@ By using a GitHub Personal Access Token, you can increase the rate limit from 60
 3. Restart your dev server (`npm run dev`) for the changes to take effect
 
 ### Important Notes
+
 - Never commit your `.env` file (it's already in `.gitignore`)
 - Keep your token secure and don't share it publicly
 

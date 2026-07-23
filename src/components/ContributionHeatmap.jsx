@@ -4,22 +4,35 @@
 // Push events, PR events, issue events etc. all count as activity.
 // This will NOT match GitHub's own contribution graph exactly.
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 
 const DAYS_IN_WEEK = 7;
 const WEEKS = 52;
 const TOTAL_DAYS = DAYS_IN_WEEK * WEEKS; // 364
 
-const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""];
+const MONTH_NAMES = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 /**
  * Returns a YYYY-MM-DD string in local time for a given Date object.
  */
 function toLocalDateString(date) {
   const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
 
@@ -28,11 +41,11 @@ function toLocalDateString(date) {
  * Colours follow GitHub's green-square convention, mapped to CSS variables.
  */
 function getCellStyle(count) {
-  if (count === 0) return { backgroundColor: 'var(--gs-heatmap-empty)' };
-  if (count <= 2)  return { backgroundColor: '#0e4429' };
-  if (count <= 5)  return { backgroundColor: '#006d32' };
-  if (count <= 10) return { backgroundColor: '#26a641' };
-  return              { backgroundColor: '#39d353' };
+  if (count === 0) return { backgroundColor: "var(--gs-heatmap-empty)" };
+  if (count <= 2) return { backgroundColor: "#0e4429" };
+  if (count <= 5) return { backgroundColor: "#006d32" };
+  if (count <= 10) return { backgroundColor: "#26a641" };
+  return { backgroundColor: "#39d353" };
 }
 
 /**
@@ -40,7 +53,7 @@ function getCellStyle(count) {
  * e.g. "Jul 8, 2026"
  */
 function formatTooltipDate(dateStr) {
-  const [y, m, d] = dateStr.split('-').map(Number);
+  const [y, m, d] = dateStr.split("-").map(Number);
   return `${MONTH_NAMES[m - 1]} ${d}, ${y}`;
 }
 
@@ -69,7 +82,7 @@ function ContributionHeatmap({ activityMap, loading }) {
     for (let col = 0; col < WEEKS; col++) {
       const dateStr = allDates[col * DAYS_IN_WEEK];
       if (!dateStr) continue;
-      const month = Number(dateStr.split('-')[1]);
+      const month = Number(dateStr.split("-")[1]);
       if (month !== lastMonth) {
         labels.push({ col, label: MONTH_NAMES[month - 1] });
         lastMonth = month;
@@ -83,16 +96,34 @@ function ContributionHeatmap({ activityMap, loading }) {
     return (
       <section className="panel p-5 sm:p-6">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[var(--gs-text)]">Activity Heatmap</h2>
-          <span className="text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">Last 12 months</span>
+          <h2 className="text-lg font-semibold text-[var(--gs-text)]">
+            Activity Heatmap
+          </h2>
+          <span className="text-xs uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">
+            Last 12 months
+          </span>
         </div>
         <div className="overflow-x-auto">
-          <div className="inline-grid animate-pulse gap-[3px]" style={{ gridTemplateColumns: `28px repeat(${WEEKS}, 13px)`, gridTemplateRows: `16px repeat(7, 13px)` }}>
+          <div
+            className="inline-grid animate-pulse gap-[3px]"
+            style={{
+              gridTemplateColumns: `28px repeat(${WEEKS}, 13px)`,
+              gridTemplateRows: `16px repeat(7, 13px)`,
+            }}
+          >
             {Array.from({ length: WEEKS + 1 }).map((_, i) => (
-              <div key={i} className="h-4 rounded bg-[var(--gs-border)]" style={{ opacity: 0.3 }} />
+              <div
+                key={i}
+                className="h-4 rounded bg-[var(--gs-border)]"
+                style={{ opacity: 0.3 }}
+              />
             ))}
             {Array.from({ length: WEEKS * DAYS_IN_WEEK }).map((_, i) => (
-              <div key={`cell-${i}`} className="h-3.5 w-3.5 rounded-sm bg-[var(--gs-border)]" style={{ opacity: 0.3 }} />
+              <div
+                key={`cell-${i}`}
+                className="h-3.5 w-3.5 rounded-sm bg-[var(--gs-border)]"
+                style={{ opacity: 0.3 }}
+              />
             ))}
           </div>
         </div>
@@ -122,14 +153,19 @@ function ContributionHeatmap({ activityMap, loading }) {
       {/* Header */}
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-[var(--gs-text)]">Activity Heatmap</h2>
+          <h2 className="text-lg font-semibold text-[var(--gs-text)]">
+            Activity Heatmap
+          </h2>
           <p className="mt-0.5 text-xs text-[var(--gs-text-secondary)]">
-            Based on GitHub contribution calendar · fallback to public events if unavailable
+            Based on GitHub contribution calendar · fallback to public events if
+            unavailable
           </p>
         </div>
         <div className="flex items-center gap-4 text-xs text-[var(--gs-text-secondary)]">
           <span className="uppercase tracking-[0.18em]">Last 12 months</span>
-          <span>{totalEvents.toLocaleString()} events · {activeDays} active days</span>
+          <span>
+            {totalEvents.toLocaleString()} events · {activeDays} active days
+          </span>
         </div>
       </div>
 
@@ -141,8 +177,11 @@ function ContributionHeatmap({ activityMap, loading }) {
             {weeks.map((week, colIdx) => {
               const label = monthLabels.find((l) => l.col === colIdx);
               return (
-                <div key={colIdx} className="w-[15px] shrink-0 text-[10px] text-[var(--gs-text-secondary)]">
-                  {label ? label.label : ''}
+                <div
+                  key={colIdx}
+                  className="w-[15px] shrink-0 text-[10px] text-[var(--gs-text-secondary)]"
+                >
+                  {label ? label.label : ""}
                 </div>
               );
             })}
@@ -151,12 +190,15 @@ function ContributionHeatmap({ activityMap, loading }) {
           {/* Grid rows */}
           <div className="flex gap-0">
             {/* Day-of-week labels */}
-            <div className="mr-1 flex flex-col justify-between" style={{ width: 28 }}>
+            <div
+              className="mr-1 flex flex-col justify-between"
+              style={{ width: 28 }}
+            >
               {DAY_LABELS.map((label, i) => (
                 <div
                   key={i}
                   className="text-[10px] leading-[13px] text-[var(--gs-text-secondary)]"
-                  style={{ height: 13, lineHeight: '13px' }}
+                  style={{ height: 13, lineHeight: "13px" }}
                 >
                   {label}
                 </div>
@@ -168,28 +210,39 @@ function ContributionHeatmap({ activityMap, loading }) {
               {weeks.map((week, colIdx) => (
                 <div key={colIdx} className="flex flex-col gap-[3px]">
                   {week.map((dateStr, rowIdx) => {
-                    const count = dateStr ? (activityMap[dateStr] || 0) : 0;
+                    const count = dateStr ? activityMap[dateStr] || 0 : 0;
                     const cellStyle = getCellStyle(count);
-                    const isFuture = dateStr ? dateStr > toLocalDateString(new Date()) : false;
+                    const isFuture = dateStr
+                      ? dateStr > toLocalDateString(new Date())
+                      : false;
 
                     return (
                       <div
                         key={rowIdx}
                         className="h-[13px] w-[13px] cursor-pointer rounded-sm transition-transform hover:scale-125"
-                        style={isFuture ? { backgroundColor: 'transparent' } : cellStyle}
+                        style={
+                          isFuture
+                            ? { backgroundColor: "transparent" }
+                            : cellStyle
+                        }
                         onMouseEnter={(e) => {
                           if (!dateStr || isFuture) return;
                           const rect = e.currentTarget.getBoundingClientRect();
                           setTooltip({
-                            text: count === 0
-                              ? `No events on ${formatTooltipDate(dateStr)}`
-                              : `${count} event${count === 1 ? '' : 's'} on ${formatTooltipDate(dateStr)}`,
+                            text:
+                              count === 0
+                                ? `No events on ${formatTooltipDate(dateStr)}`
+                                : `${count} event${count === 1 ? "" : "s"} on ${formatTooltipDate(dateStr)}`,
                             x: rect.left + rect.width / 2,
                             y: rect.top - 8,
                           });
                         }}
                         onMouseLeave={() => setTooltip(null)}
-                        aria-label={dateStr ? `${count} events on ${formatTooltipDate(dateStr)}` : undefined}
+                        aria-label={
+                          dateStr
+                            ? `${count} events on ${formatTooltipDate(dateStr)}`
+                            : undefined
+                        }
                       />
                     );
                   })}

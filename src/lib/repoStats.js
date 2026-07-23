@@ -33,8 +33,10 @@ export function getLanguageCounts(repos) {
  */
 export function getTopLanguage(repos) {
   const counts = getLanguageCounts(repos);
-  const sorted = Object.entries(counts).sort((left, right) => right[1] - left[1]);
-  return sorted[0]?.[0] || 'N/A';
+  const sorted = Object.entries(counts).sort(
+    (left, right) => right[1] - left[1],
+  );
+  return sorted[0]?.[0] || "N/A";
 }
 
 /**
