@@ -1,8 +1,121 @@
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from 'recharts';
 import ProfileCard from './ProfileCard';
 import { getAccountAgeYears, getTopLanguage } from '../lib/repoStats';
 
 function getStars(repos) {
   return repos.reduce((sum, repo) => sum + (repo.stargazers_count || 0), 0);
+}
+
+function ComparisonRadarChart({ profile1, repos1, stars1, profile2, repos2, stars2 }) {
+  const name1 = profile1?.name || profile1?.login || 'User 1';
+  const name2 = profile2?.name || profile2?.login || 'User 2';
+
+  const getConsistency = (repos) => {
+    if (!repos || repos.length === 0) return 0;
+    const now = Date.now();
+    const activeCount = repos.filter(repo => {
+      if (!repo.pushed_at) return false;
+      const pushedTime = new Date(repo.pushed_at).getTime();
+      return (now - pushedTime) < 90 * 24 * 60 * 60 * 1000;
+    }).length;
+    return Math.min(100, Math.round((activeCount / repos.length) * 100));
+  };
+
+  const getDiversity = (repos) => {
+    if (!repos || repos.length === 0) return 0;
+    const uniqueLangs = new Set(repos.map(r => r.language).filter(Boolean)).size;
+    return Math.min(100, Math.round((uniqueLangs / 8) * 100));
+  };
+
+  const c1 = getConsistency(repos1);
+  const c2 = getConsistency(repos2);
+  const d1 = getDiversity(repos1);
+  const d2 = getDiversity(repos2);
+
+  const reposCount1 = profile1?.public_repos || 0;
+  const reposCount2 = profile2?.public_repos || 0;
+  const followers1 = profile1?.followers || 0;
+  const followers2 = profile2?.followers || 0;
+
+  const maxRepos = Math.max(reposCount1, reposCount2) || 1;
+  const maxStars = Math.max(stars1, stars2) || 1;
+  const maxFollowers = Math.max(followers1, followers2) || 1;
+  const maxConsistency = Math.max(c1, c2) || 1;
+  const maxDiversity = Math.max(d1, d2) || 1;
+
+  const data = [
+    {
+      subject: 'Repos',
+      [name1]: Math.round((reposCount1 / maxRepos) * 100),
+      [name2]: Math.round((reposCount2 / maxRepos) * 100),
+    },
+    {
+      subject: 'Stars',
+      [name1]: Math.round((stars1 / maxStars) * 100),
+      [name2]: Math.round((stars2 / maxStars) * 100),
+    },
+    {
+      subject: 'Followers',
+      [name1]: Math.round((followers1 / maxFollowers) * 100),
+      [name2]: Math.round((followers2 / maxFollowers) * 100),
+    },
+    {
+      subject: 'Consistency',
+      [name1]: Math.round((c1 / maxConsistency) * 100),
+      [name2]: Math.round((c2 / maxConsistency) * 100),
+    },
+    {
+      subject: 'Lang Diversity',
+      [name1]: Math.round((d1 / maxDiversity) * 100),
+      [name2]: Math.round((d2 / maxDiversity) * 100),
+    },
+  ];
+
+  return (
+    <section className="panel p-5 sm:p-6 animate-fade-in-up">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold text-[var(--gs-text)]">Profile Strength Comparison</h2>
+        <p className="text-sm text-[var(--gs-text-secondary)]">
+          Relative metric values normalized on a 0-100 scale.
+        </p>
+      </div>
+
+      <div className="h-[320px] w-full mt-6">
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+            <PolarGrid stroke="var(--gs-border)" />
+            <PolarAngleAxis 
+              dataKey="subject" 
+              tick={{ fill: 'var(--gs-text-secondary)', fontSize: 12, fontWeight: 500 }}
+            />
+            <PolarRadiusAxis 
+              angle={30} 
+              domain={[0, 100]} 
+              tick={{ fill: 'var(--gs-text-secondary)', fontSize: 10 }}
+            />
+            <Radar
+              name={name1}
+              dataKey={name1}
+              stroke="var(--gs-accent)"
+              fill="var(--gs-accent)"
+              fillOpacity={0.25}
+            />
+            <Radar
+              name={name2}
+              dataKey={name2}
+              stroke="#A371F7"
+              fill="#A371F7"
+              fillOpacity={0.25}
+            />
+            <Legend 
+              wrapperStyle={{ paddingTop: 10 }}
+              formatter={(value) => <span className="text-sm font-semibold text-[var(--gs-text)]">{value}</span>}
+            />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+    </section>
+  );
 }
 
 function CompareView({ profile1, repos1, loading1, profile2, repos2, loading2 }) {
@@ -118,6 +231,18 @@ function CompareView({ profile1, repos1, loading1, profile2, repos2, loading2 })
           <ProfileCard profile={profile2} loading={loading2} isCompare />
         </div>
       </div>
+
+      {/* Radar Chart Visual Profile Comparison */}
+      {profile1 && profile2 && !loading1 && !loading2 && (
+        <ComparisonRadarChart
+          profile1={profile1}
+          repos1={repos1}
+          stars1={stars1}
+          profile2={profile2}
+          repos2={repos2}
+          stars2={stars2}
+        />
+      )}
 
       {/* Head-to-Head Statistics Table */}
       {profile1 && profile2 && !loading1 && !loading2 && (
