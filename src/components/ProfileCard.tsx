@@ -1,7 +1,20 @@
 import { Building, ExternalLink, MapPin } from "lucide-react";
 import useCountUp, { formatStatValue } from "../hooks/useCountUp";
+import { GitHubProfile } from "../types/github";
 
-function StatBlock({ label, value, loading }) {
+interface StatBlockProps {
+  label: string;
+  value: string | number;
+  loading?: boolean;
+}
+
+interface ProfileCardProps {
+  profile: GitHubProfile | null;
+  loading: boolean;
+  isCompare?: boolean;
+}
+
+function StatBlock({ label, value, loading }: StatBlockProps) {
   if (loading) {
     return (
       <div className="h-20 rounded-lg border border-[var(--gs-stat-border)] bg-[var(--gs-stat-bg)] animate-pulse" />
@@ -20,10 +33,7 @@ function StatBlock({ label, value, loading }) {
   );
 }
 
-function ProfileCard({ profile, loading, isCompare }) {
-  // Hooks must run on every render, so they sit above every early return (loading and !profile
-  // below). useCountUp coerces its argument with Number(x) || 0, so passing undefined while the
-  // profile is still loading is safe — the component returns before these values are shown.
+function ProfileCard({ profile, loading, isCompare }: ProfileCardProps) {
   const animatedFollowers = useCountUp(profile?.followers);
   const animatedFollowing = useCountUp(profile?.following);
   const animatedRepos = useCountUp(profile?.public_repos);

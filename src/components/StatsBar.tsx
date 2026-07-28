@@ -1,5 +1,13 @@
 import useCountUp, { formatStatValue } from '../hooks/useCountUp';
 import { getAccountAgeYears, getTopLanguage } from '../lib/repoStats';
+import { StatsBarProps } from '../types/github';
+
+interface StatTileProps {
+  label: string;
+  value: string | number;
+  triggerValue?: number;
+  index?: number;
+}
 
 function StatsSkeleton() {
   return (
@@ -15,7 +23,7 @@ function StatsSkeleton() {
   );
 }
 
-function StatTile({ label, value, triggerValue, index = 0 }) {
+function StatTile({ label, value, triggerValue, index = 0 }: StatTileProps) {
   return (
     <div
       style={{ animationDelay: `${index * 0.05}s` }}
@@ -23,7 +31,7 @@ function StatTile({ label, value, triggerValue, index = 0 }) {
     >
       <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--gs-text-secondary)]">{label}</div>
       <div
-        key={triggerValue ?? value}
+        key={triggerValue ?? String(value)}
         className="mt-2 text-lg font-semibold text-[var(--gs-text)] inline-block animate-count-pulse"
       >
         {value}
@@ -32,10 +40,7 @@ function StatTile({ label, value, triggerValue, index = 0 }) {
   );
 }
 
-function StatsBar({ repos, profile, loading }) {
-  // Hooks must run unconditionally, so the derived values they consume are computed first with
-  // null-safe fallbacks, and the hooks sit above the early returns. When profile/repos aren't ready
-  // these resolve to 0, which is harmless because the component returns before rendering them.
+function StatsBar({ repos, profile, loading }: StatsBarProps) {
   const totalStars = (repos || []).reduce((sum, repo) => sum + (repo.stargazers_count || 0), 0);
   const topLanguage = getTopLanguage(repos || []);
   const accountAge = getAccountAgeYears(profile?.created_at);
