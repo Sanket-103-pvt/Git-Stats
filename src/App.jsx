@@ -41,7 +41,7 @@ function getInitialTheme() {
 const REQUEST_TIMEOUT_MS = 12000;
 
 // Enhancement: Implement short-TTL sessionStorage cache to prevent exceeding the unauthenticated GitHub API rate limit
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 15 * 60 * 1000;
 
 async function fetchGitHubJson(url) {
   const cacheKey = `gitstats_cache_${url.toLowerCase()}`;
