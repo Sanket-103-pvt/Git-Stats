@@ -1,23 +1,13 @@
-// Shared derivations over a user's repositories and profile.
-//
-// These lived in three components as near-duplicates. Two copies of the language-count reduce
-// (StatsBar's getLanguageSummary and LanguageChart's buildLanguageData) and two copies of the
-// account-age calculation (StatsBar's getAccountAge and App's formatRelativeYears) had already
-// started to drift — the two age functions disagreed on whether a missing createdAt is handled,
-// one returning 0 and the other producing NaN. Consolidating them here means an edge-case fix
-// lands in one place.
+import { GitHubRepo } from '../types/github';
 
 /**
  * Count repositories by primary language.
  *
- * The shared primitive both language views are built on: StatsBar wants the single most-used
- * language, LanguageChart wants the full distribution, and both start from this same tally.
- *
- * @param {Array<{language?: string | null}>} repos
- * @returns {Record<string, number>} language name -> repo count (languageless repos are ignored)
+ * @param {GitHubRepo[]} repos
+ * @returns {Record<string, number>}
  */
-export function getLanguageCounts(repos) {
-  return repos.reduce((accumulator, repo) => {
+export function getLanguageCounts(repos: GitHubRepo[]): Record<string, number> {
+  return repos.reduce((accumulator: Record<string, number>, repo: GitHubRepo) => {
     if (repo.language) {
       accumulator[repo.language] = (accumulator[repo.language] || 0) + 1;
     }
@@ -28,10 +18,10 @@ export function getLanguageCounts(repos) {
 /**
  * The most-used primary language across the given repositories.
  *
- * @param {Array<{language?: string | null}>} repos
- * @returns {string} the top language, or 'N/A' when there are no languaged repos
+ * @param {GitHubRepo[]} repos
+ * @returns {string}
  */
-export function getTopLanguage(repos) {
+export function getTopLanguage(repos: GitHubRepo[]): string {
   const counts = getLanguageCounts(repos);
   const sorted = Object.entries(counts).sort((left, right) => right[1] - left[1]);
   return sorted[0]?.[0] || 'N/A';
@@ -40,14 +30,10 @@ export function getTopLanguage(repos) {
 /**
  * Whole years since an account was created.
  *
- * Uses 365.25 days per year so leap years don't accumulate a drift, floors to whole years, and
- * never returns a negative number. A missing or unparseable createdAt yields 0 rather than NaN —
- * this is the edge case the two former copies disagreed on.
- *
- * @param {string | null | undefined} createdAt an ISO 8601 timestamp (e.g. a GitHub created_at)
- * @returns {number} whole years, clamped at 0
+ * @param {string | null | undefined} createdAt
+ * @returns {number}
  */
-export function getAccountAgeYears(createdAt) {
+export function getAccountAgeYears(createdAt: string | null | undefined): number {
   if (!createdAt) {
     return 0;
   }
@@ -63,14 +49,13 @@ export function getAccountAgeYears(createdAt) {
 
 /**
  * Get most used language by repository counts.
- * Defaults to 'JavaScript' if none are found.
  *
- * @param {Array<{language?: string | null}>} repos
+ * @param {GitHubRepo[]} repos
  * @returns {string}
  */
-export function getMostUsedLanguage(repos) {
+export function getMostUsedLanguage(repos: GitHubRepo[]): string {
   if (!repos || repos.length === 0) return 'JavaScript';
-  const counts = repos.reduce((acc, repo) => {
+  const counts = repos.reduce((acc: Record<string, number>, repo: GitHubRepo) => {
     if (repo.language) {
       acc[repo.language] = (acc[repo.language] || 0) + 1;
     }
@@ -83,10 +68,10 @@ export function getMostUsedLanguage(repos) {
 /**
  * Extrapolate 90 days of public activity to 365 days.
  *
- * @param {Array} events
+ * @param {string[] | null | undefined} events
  * @returns {number}
  */
-export function getTotalEvents(events) {
+export function getTotalEvents(events: string[] | null | undefined): number {
   if (!events) return 0;
   return events.length * 4;
 }
@@ -94,29 +79,30 @@ export function getTotalEvents(events) {
 /**
  * Get the repository with the most stargazers count.
  *
- * @param {Array} repos
- * @returns {Object|null}
+ * @param {GitHubRepo[]} repos
+ * @returns {GitHubRepo|null}
  */
-export function getMostStarredRepo(repos) {
+export function getMostStarredRepo(repos: GitHubRepo[]): GitHubRepo | null {
   if (!repos || repos.length === 0) return null;
-  return repos.reduce((max, repo) => {
-    return (repo.stargazers_count || 0) > (max?.stargazers_count || 0) ? repo : max;
+  return repos.reduce((max: GitHubRepo | null, repo: GitHubRepo) => {
+    if (!max) return repo;
+    return (repo.stargazers_count || 0) > (max.stargazers_count || 0) ? repo : max;
   }, null);
 }
 
 /**
  * Find the month with the highest count of event timestamps.
  *
- * @param {Array<string>} events
+ * @param {string[]} events
  * @returns {string}
  */
 const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
-export function getPeakActivityMonth(events) {
+export function getPeakActivityMonth(events: string[]): string {
   if (!events || events.length === 0) return 'July';
-  const monthCounts = events.reduce((acc, ts) => {
+  const monthCounts = events.reduce((acc: Record<number, number>, ts: string) => {
     const d = new Date(ts);
     const m = d.getMonth();
     acc[m] = (acc[m] || 0) + 1;
@@ -129,12 +115,12 @@ export function getPeakActivityMonth(events) {
 /**
  * Determine coder personality based on the peak hour of event timestamps.
  *
- * @param {Array<string>} events
+ * @param {string[]} events
  * @returns {string}
  */
-export function getCoderPersonality(events) {
+export function getCoderPersonality(events: string[]): string {
   if (!events || events.length === 0) return 'The Open Source Champion 🏆';
-  const hourCounts = events.reduce((acc, ts) => {
+  const hourCounts = events.reduce((acc: Record<number, number>, ts: string) => {
     const d = new Date(ts);
     const h = d.getHours();
     acc[h] = (acc[h] || 0) + 1;
@@ -159,12 +145,15 @@ export function getCoderPersonality(events) {
 /**
  * Compute the longest streak of consecutive days.
  *
- * @param {Array<string>} events
- * @param {Record<string, number>} activityMap
+ * @param {string[] | null} events
+ * @param {Record<string, number> | null} activityMap
  * @returns {number}
  */
-export function getLongestStreak(events, activityMap) {
-  let uniqueDates = [];
+export function getLongestStreak(
+  events: string[] | null,
+  activityMap: Record<string, number> | null
+): number {
+  let uniqueDates: string[] = [];
   if (activityMap && Object.keys(activityMap).length > 0) {
     uniqueDates = Object.keys(activityMap)
       .filter((dateStr) => activityMap[dateStr] > 0)
@@ -179,7 +168,7 @@ export function getLongestStreak(events, activityMap) {
 
   let currentStreak = 0;
   let longestStreak = 0;
-  let lastTime = null;
+  let lastTime: number | null = null;
 
   uniqueDates.forEach((dateStr) => {
     const currentTime = new Date(dateStr).getTime();
