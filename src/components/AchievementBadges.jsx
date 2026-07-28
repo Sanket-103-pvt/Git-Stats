@@ -33,9 +33,10 @@ export default function AchievementBadges({ profile, repos, eventTimestamps, loa
   const accountAge = getAccountAgeYears(profile.created_at);
   const forkedRepos = repos.filter((repo) => repo.fork).length;
 
+  // Issue #47 Fix: Compute whether the user has committed code between 12 AM (00:00) and 4 AM (04:00)
   const hasNightCommits = eventTimestamps && eventTimestamps.some((timestamp) => {
     const hour = new Date(timestamp).getHours();
-    return hour >= 23 || hour < 5;
+    return hour >= 0 && hour < 4;
   });
 
   const badges = [
@@ -92,8 +93,8 @@ export default function AchievementBadges({ profile, repos, eventTimestamps, loa
       name: 'Night Owl',
       emoji: '🦉',
       earned: !!hasNightCommits,
-      description: 'Committed code during late night hours (11 PM - 5 AM).',
-      requirement: 'Commit code during late night hours (11 PM - 5 AM).',
+      description: 'Committed code during late night hours (12 AM - 4 AM).',
+      requirement: 'Commit code during late night hours (12 AM - 4 AM).',
     },
     {
       id: 'explorer',
