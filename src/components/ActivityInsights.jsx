@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 
 // NOTE: Events API only returns the last 90 days of public activity.
@@ -19,6 +20,16 @@ function InsightsSkeleton() {
 }
 
 export default function ActivityInsights({ eventTimestamps, loading }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 400px)');
+    const listener = () => setIsMobile(media.matches);
+    listener();
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, []);
+
   if (loading) {
     return <InsightsSkeleton />;
   }
@@ -136,19 +147,19 @@ export default function ActivityInsights({ eventTimestamps, loading }) {
         </div>
 
         {/* Chart */}
-        <div className="h-[200px] w-full">
+        <div className={isMobile ? 'h-[170px] w-full' : 'h-[200px] w-full'}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={dayData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+            <BarChart data={dayData} margin={{ top: 10, right: 10, left: isMobile ? -20 : -25, bottom: 0 }}>
               <XAxis
                 dataKey="name"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: 'var(--gs-text-secondary)', fontSize: 11, fontWeight: 500 }}
+                tick={{ fill: 'var(--gs-text-secondary)', fontSize: isMobile ? 9 : 11, fontWeight: 500 }}
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: 'var(--gs-text-secondary)', fontSize: 11 }}
+                tick={{ fill: 'var(--gs-text-secondary)', fontSize: isMobile ? 9 : 11 }}
                 allowDecimals={false}
               />
               <Tooltip

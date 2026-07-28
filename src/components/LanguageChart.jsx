@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { getLanguageCounts } from '../lib/repoStats';
 
@@ -24,6 +25,16 @@ function buildLanguageData(repos) {
 }
 
 function LanguageChart({ repos, loading }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 400px)');
+    const listener = () => setIsMobile(media.matches);
+    listener();
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, []);
+
   if (loading) {
     return (
       <section className="panel p-5 sm:p-6" aria-busy="true">
@@ -44,12 +55,12 @@ function LanguageChart({ repos, loading }) {
   const { total, data } = buildLanguageData(repos);
   const topLanguage = data[0];
 
-const chartLabel = topLanguage
-  ? `Language breakdown pie chart. ${topLanguage.name} is the most common language at ${(
-      (topLanguage.value / total) *
-      100
-    ).toFixed(1)} percent.`
-  : 'Language breakdown pie chart.';
+  const chartLabel = topLanguage
+    ? `Language breakdown pie chart. ${topLanguage.name} is the most common language at ${(
+        (topLanguage.value / total) *
+        100
+      ).toFixed(1)} percent.`
+    : 'Language breakdown pie chart.';
 
   if (!total) {
     return null;
@@ -67,11 +78,11 @@ const chartLabel = topLanguage
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[280px_1fr] lg:items-center">
         <div
-  className="h-[260px] w-full"
-  role="img"
-  aria-label={chartLabel}
-  aria-describedby="language-chart-legend"
->
+          className={isMobile ? 'h-[200px] w-full' : 'h-[260px] w-full'}
+          role="img"
+          aria-label={chartLabel}
+          aria-describedby="language-chart-legend"
+        >
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -80,9 +91,9 @@ const chartLabel = topLanguage
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                innerRadius={66}
-                outerRadius={102}
-                paddingAngle={3}
+                innerRadius={isMobile ? 48 : 66}
+                outerRadius={isMobile ? 76 : 102}
+                paddingAngle={isMobile ? 1 : 3}
                 stroke="var(--gs-bg)"
                 strokeWidth={2}
               >
