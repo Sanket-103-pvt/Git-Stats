@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Check, Copy, GitFork, Star } from 'lucide-react';
+import RepoLanguageBar from './RepoLanguageBar';
 
 function RepoSkeleton({ index = 0 }) {
   return (
@@ -95,6 +96,8 @@ function RepoCard({ repo, loading, index = 0 }) {
       <p className="mt-3 min-h-[3rem] text-sm leading-6 text-[var(--gs-text-secondary)] line-clamp-3">
         {repo.description || 'No description provided.'}
       </p>
+
+      <RepoLanguageBar languagesUrl={repo.languages_url} />
 
       <div className="mt-5 flex items-center justify-between border-t border-[var(--gs-border)] pt-4 text-sm text-[var(--gs-text-secondary)]">
         <div className="flex items-center gap-4">
