@@ -66,56 +66,81 @@ async function fetchGitHubJson(url) {
     // Ignore env read errors to prevent runtime crash
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const MAX_RETRIES = 3;
+  let attempt = 0;
 
-  let response;
-  try {
-    const headers = {
-      Accept: "application/vnd.github+json",
-    };
-    if (token && typeof token === "string" && token.trim() !== "") {
-      headers["Authorization"] = `Bearer ${token.trim()}`;
-    }
-
-    response = await fetch(url, {
-      headers,
-      signal: controller.signal,
-    });
-  } catch (fetchError) {
-    if (fetchError.name === "AbortError") {
-      const timeoutError = new Error("GitHub request timed out");
-      timeoutError.isTimeout = true;
-      throw timeoutError;
-    }
-    throw fetchError;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-
-  if (response.ok) {
-    const data = await response.json();
+  while (true) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
     try {
-      const cacheData = {
-        data: data,
-        timestamp: Date.now(),
+      const headers = {
+        Accept: "application/vnd.github+json",
       };
-      sessionStorage.setItem(cacheKey, JSON.stringify(cacheData));
-    } catch (cacheWriteError) {
-      console.warn("Failed to write to cache storage:", cacheWriteError);
+      if (token && typeof token === "string" && token.trim() !== "") {
+        headers["Authorization"] = `Bearer ${token.trim()}`;
+      }
+
+      const response = await fetch(url, {
+        headers,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+
+        try {
+          const cacheData = {
+            data: data,
+            timestamp: Date.now(),
+          };
+          sessionStorage.setItem(cacheKey, JSON.stringify(cacheData));
+        } catch (cacheWriteError) {
+          console.warn("Failed to write to cache storage:", cacheWriteError);
+        }
+
+        return data;
+      }
+
+      if (response.status >= 500 && attempt < MAX_RETRIES) {
+        attempt++;
+        const backoffMs = Math.pow(2, attempt - 1) * 1000;
+        console.warn(`GitHub API failed with status ${response.status}. Retrying in ${backoffMs}ms (attempt ${attempt}/${MAX_RETRIES})...`);
+        await new Promise((r) => setTimeout(r, backoffMs));
+        continue;
+      }
+
+      const error = new Error("GitHub request failed");
+      error.status = response.status;
+      error.body = await response.json().catch(() => null);
+      error.rateLimitRemaining = response.headers.get("x-ratelimit-remaining");
+      error.rateLimitReset = response.headers.get("x-ratelimit-reset");
+      error.retryAfter = response.headers.get("retry-after");
+      throw error;
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+
+      const isTimeout = fetchError.name === "AbortError";
+      const isNetworkError = fetchError.name === "TypeError" || fetchError.message === "Failed to fetch";
+
+      if ((isTimeout || isNetworkError) && attempt < MAX_RETRIES) {
+        attempt++;
+        const backoffMs = Math.pow(2, attempt - 1) * 1000;
+        console.warn(`GitHub request failed (${fetchError.message || fetchError.name}). Retrying in ${backoffMs}ms (attempt ${attempt}/${MAX_RETRIES})...`);
+        await new Promise((r) => setTimeout(r, backoffMs));
+        continue;
+      }
+
+      if (isTimeout) {
+        const timeoutError = new Error("GitHub request timed out");
+        timeoutError.isTimeout = true;
+        throw timeoutError;
+      }
+      throw fetchError;
     }
-
-    return data;
   }
-
-  const error = new Error("GitHub request failed");
-  error.status = response.status;
-  error.body = await response.json().catch(() => null);
-  error.rateLimitRemaining = response.headers.get("x-ratelimit-remaining");
-  error.rateLimitReset = response.headers.get("x-ratelimit-reset");
-  error.retryAfter = response.headers.get("retry-after");
-  throw error;
 }
 
 // Cap on repo pages fetched per search. 100 repos/page, so this covers up to
