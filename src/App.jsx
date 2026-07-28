@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import {
   AlertCircle,
   ArrowUp,
@@ -18,8 +18,8 @@ import CompareView from "./components/CompareView";
 import RepoFilters from "./components/RepoFilters";
 import AchievementBadges from "./components/AchievementBadges";
 import ActivityInsights from "./components/ActivityInsights";
-import GitHubWrapped from "./components/GitHubWrapped";
-import PlayerCardModal from "./components/PlayerCardModal";
+const GitHubWrapped = lazy(() => import("./components/GitHubWrapped"));
+const PlayerCardModal = lazy(() => import("./components/PlayerCardModal"));
 import ContributionHeatmap from "./components/ContributionHeatmap";
 import SearchHistory from "./components/SearchHistory";
 
@@ -692,20 +692,44 @@ function App() {
 
             {profile && !compareMode && (
               <div className="flex items-center gap-3">
-                <GitHubWrapped
-                  profile={profile}
-                  repos={repos}
-                  eventTimestamps={eventTimestamps}
-                  activityMap={activityMap}
-                  onCopyShareLink={handleShareLink}
-                />
+                <Suspense
+                  fallback={
+                    <button
+                      disabled
+                      className="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text-secondary)] opacity-50 cursor-not-allowed"
+                    >
+                      <LoaderCircle className="h-4 w-4 animate-spin" />
+                      <span className="hidden sm:inline">Loading...</span>
+                    </button>
+                  }
+                >
+                  <GitHubWrapped
+                    profile={profile}
+                    repos={repos}
+                    eventTimestamps={eventTimestamps}
+                    activityMap={activityMap}
+                    onCopyShareLink={handleShareLink}
+                  />
+                </Suspense>
 
-                <PlayerCardModal
-                  profile={profile}
-                  repos={repos}
-                  activityMap={activityMap}
-                  eventTimestamps={eventTimestamps}
-                />
+                <Suspense
+                  fallback={
+                    <button
+                      disabled
+                      className="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border border-[var(--gs-border)] bg-[var(--gs-surface)] text-[var(--gs-text-secondary)] opacity-50 cursor-not-allowed"
+                    >
+                      <LoaderCircle className="h-4 w-4 animate-spin" />
+                      <span className="hidden sm:inline">Loading...</span>
+                    </button>
+                  }
+                >
+                  <PlayerCardModal
+                    profile={profile}
+                    repos={repos}
+                    activityMap={activityMap}
+                    eventTimestamps={eventTimestamps}
+                  />
+                </Suspense>
 
                 <button
                   type="button"
