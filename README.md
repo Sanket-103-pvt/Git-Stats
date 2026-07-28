@@ -90,27 +90,49 @@ GET https://api.github.com/users/{username}/repos?per_page=100&sort=updated
 
 ## Increasing API Rate Limit
 
-By using a GitHub Personal Access Token, you can increase the rate limit from 60 to 5000 requests per hour.
+The unauthenticated GitHub REST API is rate-limited to **60 requests per hour** per IP address. When actively searching or comparing profiles, you may encounter a `403 Rate Limit Exceeded` error page. 
 
-### Step 1: Create a Personal Access Token
-1. Go to [GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
-2. Click "Generate new token (classic)"
-3. Give your token a descriptive name
-4. Select the `public_repo` scope (only read-only access to public repositories is needed)
-5. Click "Generate token"
-6. **Copy the token immediately** - you won't be able to see it again!
+By configuring a GitHub Personal Access Token (PAT), you can increase this limit to **5,000 requests per hour**.
 
-### Step 2: Configure the Token
-1. Copy the `.env.example` file to `.env` in the project root:
+### Step 1: Generate a GitHub Personal Access Token (PAT)
+1. Navigate to your GitHub account settings: [Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens).
+2. Click **Generate new token** and select **Generate new token (classic)**.
+3. Provide a clear note (e.g., `GitStats Local Development`).
+4. Select the expiration duration (e.g., 30 days or no expiration for personal local testing).
+5. Select scopes:
+   - Check the **`public_repo`** scope. This permits read-only access to public repository statistics. No write permissions are required.
+6. Scroll to the bottom and click **Generate token**.
+7. **Copy the generated token immediately**. You will not be able to view it again once you navigate away from the page.
+
+### Step 2: Set Up Local Environment Variables (`.env`)
+To prevent exposing sensitive credentials in code repositories, GitStats uses local environment files (`.env`) which are automatically ignored by git via `.gitignore`.
+
+1. In the project root directory, copy the provided environment template to a new `.env` file:
    ```bash
    cp .env.example .env
    ```
-2. Open `.env` and replace `your_github_personal_access_token_here` with the token you just created
-3. Restart your dev server (`npm run dev`) for the changes to take effect
+2. Open the newly created `.env` file in your editor:
+   ```env
+   VITE_GITHUB_TOKEN=your_github_personal_access_token_here
+   ```
+3. Replace `your_github_personal_access_token_here` with the actual personal access token you generated in Step 1.
+4. If your development server is running, **restart it** (`npm run dev`) to load the new environment variable.
 
-### Important Notes
-- Never commit your `.env` file (it's already in `.gitignore`)
-- Keep your token secure and don't share it publicly
+### How Vite Loads the Environment Variable
+This React application is powered by the **Vite** build tool. Vite has specific guidelines for exposing environment variables to client-side code:
+* **The `VITE_` Prefix**: In Vite, environment variables *must* be prefixed with `VITE_` (e.g., `VITE_GITHUB_TOKEN`). Any environment variable that does not start with `VITE_` will be excluded from the bundle to prevent accidental leaks of system-level secrets.
+* **Loading & Access**: Vite loads variables defined in `.env` files using `dotenv` under the hood. During runtime, these variables are exposed on the special `import.meta.env` object. 
+* **Implementation in Code**: The network utility inside `src/App.jsx` loads the token using the following pattern:
+  ```javascript
+  const token = import.meta.env.VITE_GITHUB_TOKEN;
+  ```
+  If the token exists, it is automatically appended to the API headers:
+  ```javascript
+  headers["Authorization"] = `Bearer ${token}`;
+  ```
+
+> [!WARNING]
+> Never commit your `.env` file or hardcode your Personal Access Token in source files. GitStats has `.env` already added to `.gitignore` to prevent secret leaks.
 
 ## Contributing
 
