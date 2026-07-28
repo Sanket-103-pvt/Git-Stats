@@ -22,6 +22,7 @@ const GitHubWrapped = lazy(() => import("./components/GitHubWrapped"));
 const PlayerCardModal = lazy(() => import("./components/PlayerCardModal"));
 import ContributionHeatmap from "./components/ContributionHeatmap";
 import SearchHistory from "./components/SearchHistory";
+import { GitStatsProvider } from "./context/GitStatsContext";
 
 const THEME_KEY = "gitstats-theme";
 const HISTORY_KEY = "gitstats-history";
@@ -665,8 +666,30 @@ function App() {
   const showRepoEmptyState = profile && !loading && repos.length === 0;
   const showLanguageEmptyState = profile && !loading && !hasLanguageData;
 
+  const contextValue = {
+    profile,
+    repos,
+    loading,
+    error,
+    searchedUsername,
+    profile2,
+    repos2,
+    loading2,
+    error2,
+    searchedUsername2,
+    compareMode,
+    setCompareMode,
+    activityMap,
+    eventTimestamps,
+    eventsLoading,
+    theme,
+    setTheme,
+    handleShareLink,
+  };
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[var(--gs-bg)] text-[var(--gs-text)]">
+    <GitStatsProvider value={contextValue}>
+      <div className="relative min-h-screen overflow-hidden bg-[var(--gs-bg)] text-[var(--gs-text)]">
       <div className="pointer-events-none absolute inset-x-0 top-[-10rem] -z-10 h-[34rem] bg-[radial-gradient(circle_at_top,rgba(88,166,255,0.18),transparent_56%)]" />
       <div className="pointer-events-none absolute right-[-6rem] top-[18rem] -z-10 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(63,185,80,0.12),transparent_70%)] blur-3xl" />
       <div className="pointer-events-none absolute left-[-4rem] bottom-[-10rem] -z-10 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(88,166,255,0.12),transparent_70%)] blur-3xl" />
@@ -728,13 +751,7 @@ function App() {
                     </button>
                   }
                 >
-                  <GitHubWrapped
-                    profile={profile}
-                    repos={repos}
-                    eventTimestamps={eventTimestamps}
-                    activityMap={activityMap}
-                    onCopyShareLink={handleShareLink}
-                  />
+                  <GitHubWrapped />
                 </Suspense>
 
                 <Suspense
@@ -748,12 +765,7 @@ function App() {
                     </button>
                   }
                 >
-                  <PlayerCardModal
-                    profile={profile}
-                    repos={repos}
-                    activityMap={activityMap}
-                    eventTimestamps={eventTimestamps}
-                  />
+                  <PlayerCardModal />
                 </Suspense>
 
                 <button
@@ -943,14 +955,7 @@ function App() {
 
         {compareMode ? (
           loading || loading2 || profile || profile2 ? (
-            <CompareView
-              profile1={profile}
-              repos1={repos}
-              loading1={loading}
-              profile2={profile2}
-              repos2={repos2}
-              loading2={loading2}
-            />
+            <CompareView />
           ) : null
         ) : (
           <>
@@ -1127,6 +1132,7 @@ function App() {
         </div>
       )}
     </div>
+    </GitStatsProvider>
   );
 }
 
