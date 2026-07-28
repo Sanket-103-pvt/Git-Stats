@@ -89,6 +89,27 @@
 
   * {
     @apply border-[var(--gs-border)];
+    scrollbar-width: thin;
+    scrollbar-color: var(--gs-border) var(--gs-bg);
+  }
+
+  /* Custom Webkit scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--gs-bg);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--gs-border);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--gs-accent);
   }
 
   ::selection {
