@@ -3,8 +3,16 @@ import { createPortal } from 'react-dom';
 import { X, Download, Link, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import useWrappedStats from '../hooks/useWrappedStats';
+import { useGitStats } from '../context/GitStatsContext';
 
-export default function GitHubWrapped({ profile, repos, eventTimestamps, activityMap, onCopyShareLink }) {
+export default function GitHubWrapped() {
+  const {
+    profile,
+    repos,
+    eventTimestamps,
+    activityMap,
+    handleShareLink: onCopyShareLink,
+  } = useGitStats();
   const [isOpen, setIsOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const stats = useWrappedStats(profile, repos, eventTimestamps, activityMap);

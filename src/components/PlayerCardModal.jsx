@@ -19,8 +19,10 @@ import {
   Activity
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import { useGitStats } from '../context/GitStatsContext';
 
-export default function PlayerCardModal({ profile, repos, activityMap, eventTimestamps }) {
+export default function PlayerCardModal() {
+  const { profile, repos, activityMap, eventTimestamps } = useGitStats();
   const [isOpen, setIsOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

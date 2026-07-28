@@ -1,4 +1,5 @@
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from 'recharts';
+import { useGitStats } from '../context/GitStatsContext';
 import ProfileCard from './ProfileCard';
 import { getAccountAgeYears, getTopLanguage } from '../lib/repoStats';
 
@@ -84,13 +85,13 @@ function ComparisonRadarChart({ profile1, repos1, stars1, profile2, repos2, star
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
             <PolarGrid stroke="var(--gs-border)" />
-            <PolarAngleAxis 
-              dataKey="subject" 
+            <PolarAngleAxis
+              dataKey="subject"
               tick={{ fill: 'var(--gs-text-secondary)', fontSize: 12, fontWeight: 500 }}
             />
-            <PolarRadiusAxis 
-              angle={30} 
-              domain={[0, 100]} 
+            <PolarRadiusAxis
+              angle={30}
+              domain={[0, 100]}
               tick={{ fill: 'var(--gs-text-secondary)', fontSize: 10 }}
             />
             <Radar
@@ -107,7 +108,7 @@ function ComparisonRadarChart({ profile1, repos1, stars1, profile2, repos2, star
               fill="#A371F7"
               fillOpacity={0.25}
             />
-            <Legend 
+            <Legend
               wrapperStyle={{ paddingTop: 10 }}
               formatter={(value) => <span className="text-sm font-semibold text-[var(--gs-text)]">{value}</span>}
             />
@@ -118,7 +119,16 @@ function ComparisonRadarChart({ profile1, repos1, stars1, profile2, repos2, star
   );
 }
 
-function CompareView({ profile1, repos1, loading1, profile2, repos2, loading2 }) {
+function CompareView() {
+  const {
+    profile: profile1,
+    repos: repos1,
+    loading: loading1,
+    profile2,
+    repos2,
+    loading2,
+  } = useGitStats();
+
   // 1. Calculate values for User 1
   const stars1 = profile1 ? getStars(repos1) : 0;
   const lang1 = profile1 ? getTopLanguage(repos1) : 'N/A';
