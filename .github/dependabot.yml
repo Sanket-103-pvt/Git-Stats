@@ -1,0 +1,29 @@
+version: 2
+updates:
+  # Maintain Node dependencies for React/Vite/Tailwind frontend
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "Sanket-103-pvt"
+    reviewers:
+      - "Sanket-103-pvt"
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Maintain GitHub Actions CI pipelines
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    assignees:
+      - "Sanket-103-pvt"
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "ci(deps)"
