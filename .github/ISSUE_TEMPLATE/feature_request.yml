@@ -1,0 +1,24 @@
+name: ✨ Feature Request
+description: Suggest an idea to make Git-Stats even better
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Welcome to Git-Stats! 📊
+        We love ideas that expand how we analyze GitHub profiles.
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: A clear and concise description of the feature.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem it Solves
+      description: Is your feature request related to a problem?
+    validations:
+      required: true
