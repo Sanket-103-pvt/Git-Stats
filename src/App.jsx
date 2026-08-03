@@ -9,6 +9,7 @@ import {
   Search,
   SunMedium,
 } from "lucide-react";
+import { readCacheEntry } from "./lib/sessionCache";
 import ProfileCard from "./components/ProfileCard";
 import StatsBar from "./components/StatsBar";
 import LanguageChart from "./components/LanguageChart";
@@ -41,8 +42,8 @@ function getInitialTheme() {
 // that into a normal, recoverable error.
 const REQUEST_TIMEOUT_MS = 12000;
 
-// Enhancement: Implement short-TTL sessionStorage cache to prevent exceeding the unauthenticated GitHub API rate limit
-const CACHE_TTL_MS = 15 * 60 * 1000;
+// Short-TTL sessionStorage cache, to stay under GitHub's unauthenticated rate limit.
+// The read path lives in lib/sessionCache so its validation can be tested directly.
 
 async function fetchGitHubJson(url) {
   const cacheKey = `gitstats_cache_${url.toLowerCase()}`;
@@ -50,11 +51,18 @@ async function fetchGitHubJson(url) {
   try {
     const cachedItem = sessionStorage.getItem(cacheKey);
     if (cachedItem) {
-      const parsed = JSON.parse(cachedItem);
-      const isExpired = Date.now() - parsed.timestamp > CACHE_TTL_MS;
-      if (!isExpired) {
-        return parsed.data;
+      // readCacheEntry validates the {data, timestamp} shape, not just that the
+      // JSON parses. An entry missing its timestamp used to read as *fresh* —
+      // `Date.now() - undefined` is NaN and `NaN > TTL` is false — and returned
+      // `undefined` to a caller expecting a profile, with nothing raised.
+      const cached = readCacheEntry(cachedItem);
+      if (cached !== undefined) {
+        return cached;
       }
+
+      // Unusable or stale: drop it rather than leave it to be re-read and
+      // re-rejected on every later request for the same URL.
+      sessionStorage.removeItem(cacheKey);
     }
   } catch (cacheReadError) {
     console.warn("Failed to read from cache storage:", cacheReadError);
